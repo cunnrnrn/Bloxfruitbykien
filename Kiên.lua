@@ -213,9 +213,9 @@ local function getNpcPosition(npcModel)
 	end
 	if npcModel:IsA("Model") then
 		local p = npcModel:FindFirstChild("HumanoidRootPart") or npcModel.PrimaryPart or npcModel:FindFirstChildWhichIsA("BasePart")
-		return p and p.Position or nil
+		return (p and p:IsDescendantOf(workspace)) and p.Position or nil
 	end
-	if npcModel:IsA("BasePart") then
+	if npcModel:IsA("BasePart") and npcModel:IsDescendantOf(workspace) then
 		return npcModel.Position
 	end
 	return nil
@@ -236,12 +236,12 @@ local function requestQuest(npcModel, questEntry)
 end
 local function getCharacterParts()
 	local char = LocalPlayer.Character
-	if not char then
+	if not char or not char:IsDescendantOf(workspace) then
 		return nil, nil, nil
 	end
 	local hum = char:FindFirstChildOfClass("Humanoid")
 	local hrp = char:FindFirstChild("HumanoidRootPart") or char.PrimaryPart
-	if not hum or hum.Health <= 0 or not hrp then
+	if not hum or hum.Health <= 0 or not hrp or not hrp:IsDescendantOf(workspace) then
 		return nil, nil, nil
 	end
 	return char, hum, hrp
@@ -315,7 +315,7 @@ local function ensureWeaponEquipped(char, hum)
 end
 
 local function getEnemyRootAndHitPart(enemy)
-	if not enemy or not enemy:IsA("Model") then
+	if not enemy or not enemy:IsA("Model") or not enemy:IsDescendantOf(workspace) then
 		return nil, nil
 	end
 	local hum = enemy:FindFirstChildOfClass("Humanoid")
@@ -327,10 +327,10 @@ local function getEnemyRootAndHitPart(enemy)
 		or enemy:FindFirstChild("UpperTorso")
 		or root
 		or enemy:FindFirstChildWhichIsA("BasePart")
-	if not hit then
+	if not hit or not hit:IsDescendantOf(workspace) then
 		return nil, nil
 	end
-	return root or hit, hit
+	return (root and root:IsDescendantOf(workspace) and root) or hit, hit
 end
 
 local function isEnemyMatch(enemyName, expectedName)
@@ -401,7 +401,7 @@ local function stopHover()
 end
 
 local function flyAndLockAt(hrp, targetPos, dt)
-	if not hrp or not targetPos then
+	if not hrp or not hrp:IsDescendantOf(workspace) or not targetPos then
 		return
 	end
 	if not KienState.BodyPos or KienState.BodyPos.Parent ~= hrp then
@@ -488,7 +488,7 @@ local function bringMobsToSpot(anchorPos, expectedName)
 		local hum = enemy:FindFirstChildOfClass("Humanoid")
 		local root = getEnemyRootAndHitPart(enemy)
 
-		if isEnemyMatch(enemy.Name, expectedName) and hum and hum.Health > 0 and root and root:IsA("BasePart") then
+		if isEnemyMatch(enemy.Name, expectedName) and hum and hum.Health > 0 and root and root:IsA("BasePart") and root:IsDescendantOf(workspace) then
 			if (root.Position - anchorPos).Magnitude <= CONFIG.BringRadius then
 				count += 1
 				hum.WalkSpeed = 0
@@ -629,9 +629,11 @@ local function fireAttack(tool, targets)
 	end
 	if RegisterHitRE then
 		for _, t in ipairs(targets) do
-			pcall(function()
-				RegisterHitRE:FireServer(t.Part, {}, [4] = CONFIG.HitSessionId)
-			end)
+			if t.Part and t.Part:IsDescendantOf(workspace) then
+				pcall(function()
+					RegisterHitRE:FireServer(t.Part, {}, [4] = CONFIG.HitSessionId)
+				end)
+			end
 		end
 	end
 end
@@ -651,15 +653,16 @@ local function createCleanUI()
 	sg.Name = "Kien94CleanGlassUI"
 	sg.ResetOnSpawn = false
 	sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	sg.DisplayOrder = 999
 	sg.Parent = playerGui
 
 	local notifyBar = Instance.new("TextLabel")
 	notifyBar.Name = "Kien94NotifyBar"
-	notifyBar.Size = UDim2.new(0, 300, 0, 28)
-	notifyBar.Position = UDim2.new(0.5, -150, 0.06, 0)
+	notifyBar.Size = UDim2.new(0, 310, 0, 30)
+	notifyBar.Position = UDim2.new(0.5, -155, 0.05, 0)
 	notifyBar.BackgroundColor3 = Color3.fromRGB(12, 16, 28)
-	notifyBar.BackgroundTransparency = 0.35
-	notifyBar.Text = "🔔 Kiên 94 • Kaitun Full Map sẵn sàng"
+	notifyBar.BackgroundTransparency = 0.25
+	notifyBar.Text = "🔔 Kiên 94 • Kaitun Full Map đã bật!"
 	notifyBar.Font = Enum.Font.GothamBold
 	notifyBar.TextSize = 11
 	notifyBar.TextColor3 = Color3.fromRGB(145, 245, 255)
@@ -667,21 +670,21 @@ local function createCleanUI()
 	notifyBar.Parent = sg
 	Instance.new("UICorner", notifyBar).CornerRadius = UDim.new(0, 10)
 	local nStroke = Instance.new("UIStroke", notifyBar)
-	nStroke.Thickness = 1.4
+	nStroke.Thickness = 1.5
 	nStroke.Color = Color3.fromRGB(0, 235, 255)
 	KienState.NotifyLabel = notifyBar
-	KienState.NotifyClearAt = os.clock() + 3.0
+	KienState.NotifyClearAt = os.clock() + 3.5
 
 	local kBtn = Instance.new("TextButton")
 	kBtn.Name = "KienFloatK"
-	kBtn.Size = UDim2.new(0, 46, 0, 46)
-	kBtn.Position = UDim2.new(0.87, 0, 0.2, 0)
+	kBtn.Size = UDim2.new(0, 48, 0, 48)
+	kBtn.Position = UDim2.new(0.86, 0, 0.2, 0)
 	kBtn.Text = "K"
 	kBtn.Font = Enum.Font.GothamBlack
 	kBtn.TextSize = 20
 	kBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	kBtn.BackgroundColor3 = Color3.fromRGB(14, 18, 32)
-	kBtn.BackgroundTransparency = 0.35
+	kBtn.BackgroundTransparency = 0.28
 	kBtn.BorderSizePixel = 0
 	kBtn.Parent = sg
 	Instance.new("UICorner", kBtn).CornerRadius = UDim.new(1, 0)
@@ -692,11 +695,11 @@ local function createCleanUI()
 	local panel = Instance.new("Frame")
 	panel.Name = "Kien94GlassPanel"
 	panel.Size = UDim2.new(0, 282, 0, 294)
-	panel.Position = UDim2.new(0.5, -141, 0.17, 0)
+	panel.Position = UDim2.new(0.5, -141, 0.16, 0)
 	panel.BackgroundColor3 = Color3.fromRGB(10, 14, 26)
-	panel.BackgroundTransparency = 0.54
+	panel.BackgroundTransparency = 0.52
 	panel.BorderSizePixel = 0
-	panel.Visible = KienState.MenuOpen
+	panel.Visible = true
 	panel.Parent = sg
 	Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 16)
 
@@ -896,7 +899,7 @@ local function createCleanUI()
 	mobInfoLbl.TextColor3 = Color3.fromRGB(150, 250, 210)
 	mobInfoLbl.Parent = farmPage
 	KienState.UI.MobInfo = mobInfoLbl
-		local attackPage = Instance.new("Frame")
+	local attackPage = Instance.new("Frame")
 	attackPage.Size = UDim2.new(1, -12, 1, -84)
 	attackPage.Position = UDim2.new(0, 6, 0, 80)
 	attackPage.BackgroundTransparency = 1
@@ -1175,10 +1178,11 @@ local function createCleanUI()
 
 	enableDrag(kBtn)
 	enableDrag(panel)
+	panel.Visible = true
 	refreshAll()
 end
 
-createCleanUI()
+pcall(createCleanUI)
 
 RunService.Heartbeat:Connect(function(dt)
 	local now = os.clock()
