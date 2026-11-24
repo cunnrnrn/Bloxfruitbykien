@@ -1,9 +1,8 @@
--- [PHẦN 1/3] √12kientomato | Kiên 94 - VIP PRO (Safe Config, Quest & Core)
-
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local SoundService = game:GetService("SoundService")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -13,17 +12,18 @@ local CONFIG = {
 	AttackRange = 60,
 	MeleeDelay = 0.11,
 	SwordDelay = 0.14,
-	FlySpeed = 185,
+	FlySpeed = 180,
 	AboveHeadHeight = 8,
 	BringMobEnabled = true,
 	BringRadius = 60,
-	BringPullSpeed = 52,
-	QuestCooldown = 1.5,
+	BringPullSpeed = 50,
+	QuestCooldown = 1.6,
 	HitSessionId = "20404cc8",
 	SendTelemetry = true,
 	TriggerToolActivate = true,
 	AutoQuest = true,
 	AutoAttack = true,
+	SoundEnabled = true,
 }
 
 local QUEST_DATA = {
@@ -37,37 +37,7 @@ local QUEST_DATA = {
 	{ MinLevel = 90, MaxLevel = 99, NpcName = "Snow Quest Giver", QuestName = "SnowQuest", QuestIndex = 1, EnemyName = "Snow Bandit" },
 	{ MinLevel = 100, MaxLevel = 119, NpcName = "Snow Quest Giver", QuestName = "SnowQuest", QuestIndex = 2, EnemyName = "Snowman" },
 	{ MinLevel = 120, MaxLevel = 149, NpcName = "Marine Quest Giver", QuestName = "MarineQuest2", QuestIndex = 1, EnemyName = "Chief Petty Officer" },
-	{ MinLevel = 150, MaxLevel = 174, NpcName = "Sky Quest Giver", QuestName = "SkyQuest", QuestIndex = 1, EnemyName = "Sky Bandit" },
-	{ MinLevel = 175, MaxLevel = 199, NpcName = "Sky Quest Giver", QuestName = "SkyQuest", QuestIndex = 2, EnemyName = "Dark Master" },
-	{ MinLevel = 200, MaxLevel = 249, NpcName = "Prisoner Quest Giver", QuestName = "PrisonerQuest", QuestIndex = 1, EnemyName = "Prisoner" },
-	{ MinLevel = 250, MaxLevel = 299, NpcName = "Prisoner Quest Giver", QuestName = "PrisonerQuest", QuestIndex = 2, EnemyName = "Dangerous Prisoner" },
-	{ MinLevel = 300, MaxLevel = 324, NpcName = "Colosseum Quest Giver", QuestName = "ColosseumQuest", QuestIndex = 1, EnemyName = "Toga Warrior" },
-	{ MinLevel = 325, MaxLevel = 374, NpcName = "Colosseum Quest Giver", QuestName = "ColosseumQuest", QuestIndex = 2, EnemyName = "Gladiator" },
-	{ MinLevel = 375, MaxLevel = 399, NpcName = "Magma Quest Giver", QuestName = "MagmaQuest", QuestIndex = 1, EnemyName = "Military Soldier" },
-	{ MinLevel = 400, MaxLevel = 449, NpcName = "Magma Quest Giver", QuestName = "MagmaQuest", QuestIndex = 2, EnemyName = "Military Spy" },
-	{ MinLevel = 450, MaxLevel = 474, NpcName = "Fishman Quest Giver", QuestName = "FishmanQuest", QuestIndex = 1, EnemyName = "Fishman Warrior" },
-	{ MinLevel = 475, MaxLevel = 524, NpcName = "Fishman Quest Giver", QuestName = "FishmanQuest", QuestIndex = 2, EnemyName = "Fishman Commando" },
-	{ MinLevel = 525, MaxLevel = 549, NpcName = "Sky Exp Quest Giver", QuestName = "SkyExp1Quest", QuestIndex = 1, EnemyName = "God's Guard" },
-	{ MinLevel = 550, MaxLevel = 624, NpcName = "Sky Exp Quest Giver", QuestName = "SkyExp1Quest", QuestIndex = 2, EnemyName = "Shanda" },
-	{ MinLevel = 625, MaxLevel = 649, NpcName = "Upper Sky Quest Giver", QuestName = "SkyExp2Quest", QuestIndex = 1, EnemyName = "Royal Squad" },
-	{ MinLevel = 650, MaxLevel = 699, NpcName = "Upper Sky Quest Giver", QuestName = "SkyExp2Quest", QuestIndex = 2, EnemyName = "Royal Soldier" },
-	{ MinLevel = 700, MaxLevel = 724, NpcName = "Fountain Quest Giver", QuestName = "FountainQuest", QuestIndex = 1, EnemyName = "Galley Pirate" },
-	{ MinLevel = 725, MaxLevel = 774, NpcName = "Fountain Quest Giver", QuestName = "FountainQuest", QuestIndex = 2, EnemyName = "Galley Captain" },
-	{ MinLevel = 775, MaxLevel = 799, NpcName = "Area 1 Quest Giver", QuestName = "Area1Quest", QuestIndex = 1, EnemyName = "Raider" },
-	{ MinLevel = 800, MaxLevel = 874, NpcName = "Area 1 Quest Giver", QuestName = "Area1Quest", QuestIndex = 2, EnemyName = "Mercenary" },
-	{ MinLevel = 875, MaxLevel = 899, NpcName = "Area 2 Quest Giver", QuestName = "Area2Quest", QuestIndex = 1, EnemyName = "Swan Pirate" },
-	{ MinLevel = 900, MaxLevel = 949, NpcName = "Area 2 Quest Giver", QuestName = "Area2Quest", QuestIndex = 2, EnemyName = "Factory Staff" },
-	{ MinLevel = 950, MaxLevel = 974, NpcName = "Marine Quest Giver 2", QuestName = "MarineQuest3", QuestIndex = 1, EnemyName = "Marine Lieutenant" },
-	{ MinLevel = 975, MaxLevel = 999, NpcName = "Marine Quest Giver 2", QuestName = "MarineQuest3", QuestIndex = 2, EnemyName = "Marine Captain" },
-	{ MinLevel = 1000, MaxLevel = 1049, NpcName = "Zombie Quest Giver", QuestName = "ZombieQuest", QuestIndex = 1, EnemyName = "Zombie" },
-	{ MinLevel = 1050, MaxLevel = 1099, NpcName = "Zombie Quest Giver", QuestName = "ZombieQuest", QuestIndex = 2, EnemyName = "Vampire" },
-	{ MinLevel = 1100, MaxLevel = 1174, NpcName = "Snow Mountain Quest Giver", QuestName = "SnowMountainQuest", QuestIndex = 1, EnemyName = "Snow Trooper" },
-	{ MinLevel = 1175, MaxLevel = 1199, NpcName = "Snow Mountain Quest Giver", QuestName = "SnowMountainQuest", QuestIndex = 2, EnemyName = "Winter Warrior" },
-	{ MinLevel = 1200, MaxLevel = 1249, NpcName = "Ice Side Quest Giver", QuestName = "IceSideQuest", QuestIndex = 1, EnemyName = "Lab Subordinate" },
-	{ MinLevel = 1250, MaxLevel = 1274, NpcName = "Ice Side Quest Giver", QuestName = "IceSideQuest", QuestIndex = 2, EnemyName = "Horned Warrior" },
-	{ MinLevel = 1275, MaxLevel = 1299, NpcName = "Fire Side Quest Giver", QuestName = "FireSideQuest", QuestIndex = 1, EnemyName = "Magma Ninja" },
-	{ MinLevel = 1300, MaxLevel = 1349, NpcName = "Fire Side Quest Giver", QuestName = "FireSideQuest", QuestIndex = 2, EnemyName = "Lava Pirate" },
-	{ MinLevel = 1350, MaxLevel = 9999, NpcName = "Quest Giver", QuestName = "BanditQuest1", QuestIndex = 1, EnemyName = "Bandit" },
+	{ MinLevel = 150, MaxLevel = 9999, NpcName = "Bandit Quest Giver", QuestName = "BanditQuest1", QuestIndex = 1, EnemyName = "Bandit" },
 }
 
 local NetFolder = ReplicatedStorage:FindFirstChild("Modules") and ReplicatedStorage.Modules:FindFirstChild("Net")
@@ -84,11 +54,13 @@ local KienState = {
 	LastAttack = 0,
 	LastQuest = 0,
 	LastLevel = nil,
+	LastEnemyName = nil,
 	AnchorPos = nil,
 	LockedEnemy = nil,
 	BodyPos = nil,
 	BodyVel = nil,
-	BroughtCount = 0,
+	NotifyLabel = nil,
+	NotifyClearAt = 0,
 	UI = {},
 }
 
@@ -96,27 +68,51 @@ local MELEE_KEYWORDS = {
 	"combat", "dark step", "electric", "water kung fu", "dragon breath",
 	"superhuman", "death step", "sharkman karate", "electric claw",
 	"dragon talon", "godhuman", "sanguine art", "melee", "fighting",
-	"fist", "claw",
 }
 
 local EXCLUDED_KEYWORDS = {
 	"fruit", "gun", "bow", "rifle", "pistol", "musket", "flintlock",
-	"kabucha", "bizarre", "soul guitar",
+	"kabucha", "soul guitar",
 }
 
+local function notify(text, duration)
+	KienState.NotifyClearAt = os.clock() + (duration or 2.4)
+	if KienState.NotifyLabel then
+		KienState.NotifyLabel.Text = "🔔 " .. tostring(text)
+	end
+end
+
+local function playBeep(isPositive)
+	if not CONFIG.SoundEnabled then
+		return
+	end
+	pcall(function()
+		local s = Instance.new("Sound")
+		s.SoundId = isPositive and "rbxassetid://6026984224" or "rbxassetid://6026984115"
+		s.Volume = 0.55
+		s.Parent = SoundService
+		s:Play()
+		task.delay(1.5, function()
+			if s then
+				s:Destroy()
+			end
+		end)
+	end)
+end
+
 local function getPlayerLevel()
-	local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
-	if leaderstats then
-		local stat = leaderstats:FindFirstChild("Level") or leaderstats:FindFirstChild("Lvl") or leaderstats:FindFirstChild("Lv")
-		if stat and stat:IsA("ValueBase") then
-			return tonumber(stat.Value) or 1
+	local ls = LocalPlayer:FindFirstChild("leaderstats")
+	if ls then
+		local lv = ls:FindFirstChild("Level") or ls:FindFirstChild("Lvl") or ls:FindFirstChild("Lv")
+		if lv and lv:IsA("ValueBase") then
+			return tonumber(lv.Value) or 1
 		end
 	end
-	local dataFolder = LocalPlayer:FindFirstChild("Data")
-	if dataFolder then
-		local stat = dataFolder:FindFirstChild("Level")
-		if stat and stat:IsA("ValueBase") then
-			return tonumber(stat.Value) or 1
+	local data = LocalPlayer:FindFirstChild("Data")
+	if data then
+		local lv = data:FindFirstChild("Level")
+		if lv and lv:IsA("ValueBase") then
+			return tonumber(lv.Value) or 1
 		end
 	end
 	return 1
@@ -143,30 +139,22 @@ local function hasActiveQuest()
 			return true
 		end
 	end
-	for _, obj in ipairs(gui:GetDescendants()) do
-		if obj:IsA("GuiObject") and obj.Visible then
-			local n = string.lower(obj.Name)
-			if string.find(n, "questcontainer", 1, true) or string.find(n, "questframe", 1, true) then
-				return true
-			end
-		end
-	end
 	return false
 end
 
 local function findQuestNpcModel(npcName)
-	local folder = workspace:FindFirstChild("NPCs") or workspace:FindFirstChild("NPC")
-	local roots = folder and { folder, workspace } or { workspace }
-	local lowerTarget = string.lower(npcName)
-
-	for _, root in ipairs(roots) do
-		for _, item in ipairs(root:GetDescendants()) do
-			if item:IsA("Model") then
-				local lowerItem = string.lower(item.Name)
-				if lowerItem == lowerTarget or string.find(lowerItem, lowerTarget, 1, true) then
-					return item
-				end
-			end
+	local npcsFolder = workspace:FindFirstChild("NPCs")
+	if not npcsFolder then
+		return nil
+	end
+	local direct = npcsFolder:FindFirstChild(npcName)
+	if direct then
+		return direct
+	end
+	local targetLower = string.lower(npcName)
+	for _, item in ipairs(npcsFolder:GetChildren()) do
+		if string.find(string.lower(item.Name), targetLower, 1, true) then
+			return item
 		end
 	end
 	return nil
@@ -179,42 +167,26 @@ local function getNpcPosition(npcModel)
 	if npcModel:IsA("Model") then
 		local p = npcModel:FindFirstChild("HumanoidRootPart") or npcModel.PrimaryPart or npcModel:FindFirstChildWhichIsA("BasePart")
 		return p and p.Position or nil
-	elseif npcModel:IsA("BasePart") then
+	end
+	if npcModel:IsA("BasePart") then
 		return npcModel.Position
 	end
 	return nil
 end
 
-local function triggerQuestAccept(npcModel, questEntry)
+local function requestQuest(npcModel, questEntry)
 	if npcModel and OnTalkToNpcRE then
 		pcall(function()
 			OnTalkToNpcRE:FireServer(npcModel)
 		end)
 	end
-
 	local commF = (RemotesFolder and RemotesFolder:FindFirstChild("CommF_")) or ReplicatedStorage:FindFirstChild("CommF_")
 	if commF and commF:IsA("RemoteFunction") then
 		pcall(function()
 			commF:InvokeServer("StartQuest", questEntry.QuestName, questEntry.QuestIndex)
 		end)
 	end
-
-	if npcModel then
-		for _, desc in ipairs(npcModel:GetDescendants()) do
-			if desc:IsA("ProximityPrompt") and typeof(fireproximityprompt) == "function" then
-				pcall(function()
-					fireproximityprompt(desc)
-				end)
-			elseif desc:IsA("ClickDetector") and typeof(fireclickdetector) == "function" then
-				pcall(function()
-					fireclickdetector(desc)
-				end)
-			end
-		end
-	end
 end
--- [PHẦN 2/3] √12kientomato | Kiên 94 - VIP PRO (Hover, Bring Mob & Auto Attack Engine)
-
 local function getCharacterParts()
 	local char = LocalPlayer.Character
 	if not char then
@@ -228,7 +200,7 @@ local function getCharacterParts()
 	return char, hum, hrp
 end
 
-local function setCharacterNoClip(char)
+local function applyNoClip(char)
 	if not char then
 		return
 	end
@@ -281,9 +253,9 @@ local function resolveFarmEnemy(hrp, expectedName, forceRefresh)
 		if isEnemyMatch(KienState.LockedEnemy.Name, expectedName) then
 			local root, hitPart = getEnemyRootAndHitPart(KienState.LockedEnemy)
 			if root and hitPart then
-				local desiredAbove = hitPart.Position + Vector3.new(0, CONFIG.AboveHeadHeight, 0)
-				if not KienState.AnchorPos or (desiredAbove - KienState.AnchorPos).Magnitude > 12 then
-					KienState.AnchorPos = desiredAbove
+				local targetAbove = hitPart.Position + Vector3.new(0, CONFIG.AboveHeadHeight, 0)
+				if not KienState.AnchorPos or (targetAbove - KienState.AnchorPos).Magnitude > 12 then
+					KienState.AnchorPos = targetAbove
 				end
 				return hitPart
 			end
@@ -310,13 +282,17 @@ local function resolveFarmEnemy(hrp, expectedName, forceRefresh)
 	return bestPart
 end
 
-local function stopPlayerHover()
+local function stopHover()
 	if KienState.BodyPos then
-		KienState.BodyPos:Destroy()
+		pcall(function()
+			KienState.BodyPos:Destroy()
+		end)
 		KienState.BodyPos = nil
 	end
 	if KienState.BodyVel then
-		KienState.BodyVel:Destroy()
+		pcall(function()
+			KienState.BodyVel:Destroy()
+		end)
 		KienState.BodyVel = nil
 	end
 end
@@ -326,7 +302,7 @@ local function flyAndLockAt(hrp, targetPos, dt)
 		return
 	end
 	if not KienState.BodyPos or KienState.BodyPos.Parent ~= hrp then
-		stopPlayerHover()
+		stopHover()
 		local bp = Instance.new("BodyPosition")
 		bp.Name = "Kien94Bp"
 		bp.MaxForce = Vector3.new(1e6, 1e6, 1e6)
@@ -346,8 +322,10 @@ local function flyAndLockAt(hrp, targetPos, dt)
 
 	local diff = targetPos - hrp.Position
 	local dist = diff.Magnitude
+	local safeDt = math.clamp(dt or 0.016, 0.008, 0.05)
+
 	if dist > 2.0 then
-		local step = math.min(dist, CONFIG.FlySpeed * math.max(dt, 0.016))
+		local step = math.min(dist, CONFIG.FlySpeed * safeDt)
 		KienState.BodyPos.Position = hrp.Position + diff.Unit * math.max(step, 1.5)
 		KienState.BodyVel.Velocity = diff.Unit * math.min(CONFIG.FlySpeed, math.max(45, dist * 6))
 	else
@@ -355,8 +333,8 @@ local function flyAndLockAt(hrp, targetPos, dt)
 		KienState.BodyVel.Velocity = Vector3.zero
 	end
 
-	local lookPos = Vector3.new(targetPos.X, hrp.Position.Y - CONFIG.AboveHeadHeight, targetPos.Z)
-	hrp.CFrame = CFrame.lookAt(hrp.Position, lookPos)
+	local lookTarget = Vector3.new(targetPos.X, hrp.Position.Y - CONFIG.AboveHeadHeight, targetPos.Z)
+	hrp.CFrame = CFrame.lookAt(hrp.Position, lookTarget)
 end
 
 local function releaseMob(enemy)
@@ -367,11 +345,15 @@ local function releaseMob(enemy)
 	if root then
 		local bv = root:FindFirstChild("Kien94MobBv")
 		if bv then
-			bv:Destroy()
+			pcall(function()
+				bv:Destroy()
+			end)
 		end
 		local bp = root:FindFirstChild("Kien94MobBp")
 		if bp then
-			bp:Destroy()
+			pcall(function()
+				bp:Destroy()
+			end)
 		end
 	end
 	local hum = enemy:FindFirstChildOfClass("Humanoid")
@@ -396,7 +378,7 @@ local function bringMobsToSpot(anchorPos, expectedName)
 		return 0
 	end
 
-	local gatherPoint = anchorPos - Vector3.new(0, math.max(4, CONFIG.AboveHeadHeight - 1), 0)
+	local gatherSpot = anchorPos - Vector3.new(0, math.max(4, CONFIG.AboveHeadHeight - 1), 0)
 	local count = 0
 
 	for _, enemy in ipairs(enemiesFolder:GetChildren()) do
@@ -406,12 +388,6 @@ local function bringMobsToSpot(anchorPos, expectedName)
 		if isEnemyMatch(enemy.Name, expectedName) and hum and hum.Health > 0 and root and root:IsA("BasePart") then
 			if (root.Position - anchorPos).Magnitude <= CONFIG.BringRadius then
 				count += 1
-				pcall(function()
-					if typeof(sethiddenproperty) == "function" then
-						sethiddenproperty(root, "NetworkIsSleeping", false)
-					end
-				end)
-
 				hum.WalkSpeed = 0
 				for _, p in ipairs(enemy:GetDescendants()) do
 					if p:IsA("BasePart") then
@@ -419,11 +395,13 @@ local function bringMobsToSpot(anchorPos, expectedName)
 					end
 				end
 
-				local toSpot = gatherPoint - root.Position
+				local toSpot = gatherSpot - root.Position
 				if toSpot.Magnitude > 1.8 then
 					local oldBp = root:FindFirstChild("Kien94MobBp")
 					if oldBp then
-						oldBp:Destroy()
+						pcall(function()
+							oldBp:Destroy()
+						end)
 					end
 					local bv = root:FindFirstChild("Kien94MobBv")
 					if not bv then
@@ -436,7 +414,9 @@ local function bringMobsToSpot(anchorPos, expectedName)
 				else
 					local oldBv = root:FindFirstChild("Kien94MobBv")
 					if oldBv then
-						oldBv:Destroy()
+						pcall(function()
+							oldBv:Destroy()
+						end)
 					end
 					local bp = root:FindFirstChild("Kien94MobBp")
 					if not bp then
@@ -447,7 +427,7 @@ local function bringMobsToSpot(anchorPos, expectedName)
 						bp.D = 900
 						bp.Parent = root
 					end
-					bp.Position = gatherPoint
+					bp.Position = gatherSpot
 				end
 			else
 				releaseMob(enemy)
@@ -496,7 +476,7 @@ local function getEquippedMeleeOrSword(char)
 	end
 
 	local attr = tool:GetAttribute("WeaponType")
-	if typeof(attr) == "string" then
+	if type(attr) == "string" then
 		local t = string.lower(attr)
 		if t == "melee" then
 			return tool, CONFIG.MeleeDelay
@@ -559,20 +539,42 @@ local function fireAttack(tool, targets)
 		end
 	end
 end
--- [PHẦN 3/3] √12kientomato | Kiên 94 - VIP PRO (Multi-Tab Transparent UI & Main Loop)
-
-local function createMultiTabGlassUI()
-	local playerGui = LocalPlayer:WaitForChild("PlayerGui")
-	local old = playerGui:FindFirstChild("Kien94MultiTabGlass")
+local function createCleanUI()
+	local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+	if not playerGui then
+		return
+	end
+	local old = playerGui:FindFirstChild("Kien94CleanGlassUI")
 	if old then
-		old:Destroy()
+		pcall(function()
+			old:Destroy()
+		end)
 	end
 
 	local sg = Instance.new("ScreenGui")
-	sg.Name = "Kien94MultiTabGlass"
+	sg.Name = "Kien94CleanGlassUI"
 	sg.ResetOnSpawn = false
 	sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	sg.Parent = playerGui
+
+	local notifyBar = Instance.new("TextLabel")
+	notifyBar.Name = "Kien94NotifyBar"
+	notifyBar.Size = UDim2.new(0, 290, 0, 28)
+	notifyBar.Position = UDim2.new(0.5, -145, 0.06, 0)
+	notifyBar.BackgroundColor3 = Color3.fromRGB(12, 16, 28)
+	notifyBar.BackgroundTransparency = 0.35
+	notifyBar.Text = "🔔 Kiên 94 • √12kientomato đã sẵn sàng"
+	notifyBar.Font = Enum.Font.GothamBold
+	notifyBar.TextSize = 11
+	notifyBar.TextColor3 = Color3.fromRGB(145, 245, 255)
+	notifyBar.TextWrapped = true
+	notifyBar.Parent = sg
+	Instance.new("UICorner", notifyBar).CornerRadius = UDim.new(0, 10)
+	local nStroke = Instance.new("UIStroke", notifyBar)
+	nStroke.Thickness = 1.4
+	nStroke.Color = Color3.fromRGB(0, 235, 255)
+	KienState.NotifyLabel = notifyBar
+	KienState.NotifyClearAt = os.clock() + 3.0
 
 	local kBtn = Instance.new("TextButton")
 	kBtn.Name = "KienFloatK"
@@ -592,7 +594,7 @@ local function createMultiTabGlassUI()
 	kStroke.Color = Color3.fromRGB(0, 240, 255)
 
 	local panel = Instance.new("Frame")
-	panel.Name = "Kien94GlassMain"
+	panel.Name = "Kien94GlassPanel"
 	panel.Size = UDim2.new(0, 276, 0, 272)
 	panel.Position = UDim2.new(0.5, -138, 0.18, 0)
 	panel.BackgroundColor3 = Color3.fromRGB(10, 14, 26)
@@ -929,30 +931,37 @@ local function createMultiTabGlassUI()
 	tabFarmBtn.MouseButton1Click:Connect(function()
 		KienState.ActiveTab = "Farm"
 		refreshAll()
+		notify("Đã mở tab Farm", 1.5)
 	end)
 	tabAttackBtn.MouseButton1Click:Connect(function()
 		KienState.ActiveTab = "Attack"
 		refreshAll()
+		notify("Đã mở tab Attack", 1.5)
 	end)
 	tabInfoBtn.MouseButton1Click:Connect(function()
 		KienState.ActiveTab = "Info"
 		refreshAll()
+		notify("Đã mở tab Info", 1.5)
 	end)
 
 	autoFarmBtn.MouseButton1Click:Connect(function()
 		KienState.AutoFarm = not KienState.AutoFarm
 		if not KienState.AutoFarm then
-			stopPlayerHover()
+			stopHover()
 			cleanupAllMobs()
 			KienState.LockedEnemy = nil
 			KienState.AnchorPos = nil
 		end
 		refreshAll()
+		playBeep(KienState.AutoFarm)
+		notify(KienState.AutoFarm and "Auto Farm: BẬT" or "Auto Farm: TẮT")
 	end)
 
 	autoQuestBtn.MouseButton1Click:Connect(function()
 		CONFIG.AutoQuest = not CONFIG.AutoQuest
 		refreshAll()
+		playBeep(CONFIG.AutoQuest)
+		notify(CONFIG.AutoQuest and "Auto Quest: BẬT" or "Auto Quest: TẮT")
 	end)
 
 	bringMobBtn.MouseButton1Click:Connect(function()
@@ -961,48 +970,60 @@ local function createMultiTabGlassUI()
 			cleanupAllMobs()
 		end
 		refreshAll()
+		playBeep(CONFIG.BringMobEnabled)
+		notify(CONFIG.BringMobEnabled and "Bring Mob: BẬT" or "Bring Mob: TẮT")
 	end)
 
 	autoAtkBtn.MouseButton1Click:Connect(function()
 		CONFIG.AutoAttack = not CONFIG.AutoAttack
 		refreshAll()
+		playBeep(CONFIG.AutoAttack)
+		notify(CONFIG.AutoAttack and "Auto Attack (60): BẬT" or "Auto Attack (60): TẮT")
 	end)
 
 	hMinus.MouseButton1Click:Connect(function()
 		CONFIG.AboveHeadHeight = math.max(3, CONFIG.AboveHeadHeight - 1)
 		KienState.AnchorPos = nil
 		refreshAll()
+		notify("Độ cao trên đầu quái: " .. CONFIG.AboveHeadHeight .. " studs", 1.5)
 	end)
 	hPlus.MouseButton1Click:Connect(function()
 		CONFIG.AboveHeadHeight = math.min(35, CONFIG.AboveHeadHeight + 1)
 		KienState.AnchorPos = nil
 		refreshAll()
+		notify("Độ cao trên đầu quái: " .. CONFIG.AboveHeadHeight .. " studs", 1.5)
 	end)
 
 	mSub.MouseButton1Click:Connect(function()
 		CONFIG.MeleeDelay = math.max(0.05, CONFIG.MeleeDelay - 0.02)
 		refreshAll()
+		notify("Võ Delay: " .. string.format("%.2f", CONFIG.MeleeDelay) .. "s", 1.5)
 	end)
 	mAdd.MouseButton1Click:Connect(function()
 		CONFIG.MeleeDelay = math.min(0.60, CONFIG.MeleeDelay + 0.02)
 		refreshAll()
+		notify("Võ Delay: " .. string.format("%.2f", CONFIG.MeleeDelay) .. "s", 1.5)
 	end)
 	sSub.MouseButton1Click:Connect(function()
 		CONFIG.SwordDelay = math.max(0.05, CONFIG.SwordDelay - 0.02)
 		refreshAll()
+		notify("Kiếm Delay: " .. string.format("%.2f", CONFIG.SwordDelay) .. "s", 1.5)
 	end)
 	sAdd.MouseButton1Click:Connect(function()
 		CONFIG.SwordDelay = math.min(0.60, CONFIG.SwordDelay + 0.02)
 		refreshAll()
+		notify("Kiếm Delay: " .. string.format("%.2f", CONFIG.SwordDelay) .. "s", 1.5)
 	end)
 
 	hideBtn.MouseButton1Click:Connect(function()
 		KienState.MenuOpen = false
 		panel.Visible = false
+		notify("Đã ẩn menu (bấm nút K để mở)", 1.8)
 	end)
 	kBtn.MouseButton1Click:Connect(function()
 		KienState.MenuOpen = not KienState.MenuOpen
 		panel.Visible = KienState.MenuOpen
+		notify(KienState.MenuOpen and "Đã mở menu Kiên 94" or "Đã thu gọn menu Kiên 94", 1.5)
 	end)
 
 	local function enableDrag(obj)
@@ -1037,17 +1058,26 @@ local function createMultiTabGlassUI()
 	refreshAll()
 end
 
-createMultiTabGlassUI()
+createCleanUI()
 
 RunService.Heartbeat:Connect(function(dt)
+	local now = os.clock()
+
+	if KienState.NotifyLabel and now > KienState.NotifyClearAt then
+		KienState.NotifyLabel.Text = "🔔 " .. CONFIG.HubTitle .. " • Lv " .. tostring(getPlayerLevel())
+	end
+
 	local level = getPlayerLevel()
 	local questEntry = getQuestEntryForLevel(level)
 	local levelChanged = (KienState.LastLevel ~= nil and KienState.LastLevel ~= level)
+	local enemyChanged = (KienState.LastEnemyName ~= nil and KienState.LastEnemyName ~= questEntry.EnemyName)
 	KienState.LastLevel = level
+	KienState.LastEnemyName = questEntry.EnemyName
 
-	if levelChanged then
+	if levelChanged or enemyChanged then
 		KienState.LockedEnemy = nil
 		KienState.AnchorPos = nil
+		notify("Đổi mục tiêu theo Lv " .. level .. ": " .. questEntry.EnemyName, 2.5)
 	end
 
 	if KienState.UI.FarmStatus then
@@ -1055,8 +1085,8 @@ RunService.Heartbeat:Connect(function(dt)
 	end
 
 	if not KienState.AutoFarm then
-		stopPlayerHover()
-		cleanupAllMobs()
+		stopHover()
+				cleanupAllMobs()
 		if KienState.UI.MobInfo then
 			KienState.UI.MobInfo.Text = "Quái đã gom: 0"
 		end
@@ -1065,13 +1095,12 @@ RunService.Heartbeat:Connect(function(dt)
 
 	local char, hum, hrp = getCharacterParts()
 	if not char or not hum or not hrp then
-		stopPlayerHover()
+		stopHover()
 		cleanupAllMobs()
 		return
 	end
 
-	setCharacterNoClip(char)
-	local now = os.clock()
+	applyNoClip(char)
 
 	if CONFIG.AutoQuest and not hasActiveQuest() and (now - KienState.LastQuest >= CONFIG.QuestCooldown) then
 		local npcModel = findQuestNpcModel(questEntry.NpcName)
@@ -1080,11 +1109,12 @@ RunService.Heartbeat:Connect(function(dt)
 			flyAndLockAt(hrp, npcPos + Vector3.new(0, 4, 0), dt)
 		else
 			KienState.LastQuest = now
-			triggerQuestAccept(npcModel, questEntry)
+			requestQuest(npcModel, questEntry)
+			notify("Đang nhận quest: " .. questEntry.EnemyName, 2.0)
 		end
 	end
 
-	local farmPart = resolveFarmEnemy(hrp, questEntry.EnemyName, levelChanged)
+	local farmPart = resolveFarmEnemy(hrp, questEntry.EnemyName, levelChanged or enemyChanged)
 	local brought = 0
 
 	if farmPart and KienState.AnchorPos then
@@ -1093,7 +1123,7 @@ RunService.Heartbeat:Connect(function(dt)
 			brought = bringMobsToSpot(KienState.AnchorPos, questEntry.EnemyName)
 		end
 	else
-		stopPlayerHover()
+		stopHover()
 	end
 
 	if KienState.UI.MobInfo then
@@ -1117,5 +1147,3 @@ RunService.Heartbeat:Connect(function(dt)
 		fireAttack(weapon, targets)
 	end
 end)
-
-print("[" .. CONFIG.HubTitle .. " • " .. CONFIG.HubSub .. "] Fixed & Loaded!")
