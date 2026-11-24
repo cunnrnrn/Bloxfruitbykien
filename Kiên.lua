@@ -2,7 +2,6 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local SoundService = game:GetService("SoundService")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -12,18 +11,19 @@ local CONFIG = {
 	AttackRange = 60,
 	MeleeDelay = 0.11,
 	SwordDelay = 0.14,
-	FlySpeed = 180,
+	FlySpeed = 185,
 	AboveHeadHeight = 8,
 	BringMobEnabled = true,
 	BringRadius = 60,
-	BringPullSpeed = 50,
+	BringPullSpeed = 52,
 	QuestCooldown = 1.6,
+	KaitunMode = true,
+	AutoEquipWeapon = true,
 	HitSessionId = "20404cc8",
 	SendTelemetry = true,
 	TriggerToolActivate = true,
 	AutoQuest = true,
 	AutoAttack = true,
-	SoundEnabled = true,
 }
 
 local QUEST_DATA = {
@@ -37,7 +37,71 @@ local QUEST_DATA = {
 	{ MinLevel = 90, MaxLevel = 99, NpcName = "Snow Quest Giver", QuestName = "SnowQuest", QuestIndex = 1, EnemyName = "Snow Bandit" },
 	{ MinLevel = 100, MaxLevel = 119, NpcName = "Snow Quest Giver", QuestName = "SnowQuest", QuestIndex = 2, EnemyName = "Snowman" },
 	{ MinLevel = 120, MaxLevel = 149, NpcName = "Marine Quest Giver", QuestName = "MarineQuest2", QuestIndex = 1, EnemyName = "Chief Petty Officer" },
-	{ MinLevel = 150, MaxLevel = 9999, NpcName = "Bandit Quest Giver", QuestName = "BanditQuest1", QuestIndex = 1, EnemyName = "Bandit" },
+	{ MinLevel = 150, MaxLevel = 174, NpcName = "Sky Quest Giver", QuestName = "SkyQuest", QuestIndex = 1, EnemyName = "Sky Bandit" },
+	{ MinLevel = 175, MaxLevel = 199, NpcName = "Sky Quest Giver", QuestName = "SkyQuest", QuestIndex = 2, EnemyName = "Dark Master" },
+	{ MinLevel = 200, MaxLevel = 249, NpcName = "Prisoner Quest Giver", QuestName = "PrisonerQuest", QuestIndex = 1, EnemyName = "Prisoner" },
+	{ MinLevel = 250, MaxLevel = 299, NpcName = "Prisoner Quest Giver", QuestName = "PrisonerQuest", QuestIndex = 2, EnemyName = "Dangerous Prisoner" },
+	{ MinLevel = 300, MaxLevel = 324, NpcName = "Colosseum Quest Giver", QuestName = "ColosseumQuest", QuestIndex = 1, EnemyName = "Toga Warrior" },
+	{ MinLevel = 325, MaxLevel = 374, NpcName = "Colosseum Quest Giver", QuestName = "ColosseumQuest", QuestIndex = 2, EnemyName = "Gladiator" },
+	{ MinLevel = 375, MaxLevel = 399, NpcName = "Magma Quest Giver", QuestName = "MagmaQuest", QuestIndex = 1, EnemyName = "Military Soldier" },
+	{ MinLevel = 400, MaxLevel = 449, NpcName = "Magma Quest Giver", QuestName = "MagmaQuest", QuestIndex = 2, EnemyName = "Military Spy" },
+	{ MinLevel = 450, MaxLevel = 474, NpcName = "Fishman Quest Giver", QuestName = "FishmanQuest", QuestIndex = 1, EnemyName = "Fishman Warrior" },
+	{ MinLevel = 475, MaxLevel = 524, NpcName = "Fishman Quest Giver", QuestName = "FishmanQuest", QuestIndex = 2, EnemyName = "Fishman Commando" },
+	{ MinLevel = 525, MaxLevel = 549, NpcName = "Sky Exp Quest Giver", QuestName = "SkyExp1Quest", QuestIndex = 1, EnemyName = "God's Guard" },
+	{ MinLevel = 550, MaxLevel = 624, NpcName = "Sky Exp Quest Giver", QuestName = "SkyExp1Quest", QuestIndex = 2, EnemyName = "Shanda" },
+	{ MinLevel = 625, MaxLevel = 649, NpcName = "Upper Sky Quest Giver", QuestName = "SkyExp2Quest", QuestIndex = 1, EnemyName = "Royal Squad" },
+	{ MinLevel = 650, MaxLevel = 699, NpcName = "Upper Sky Quest Giver", QuestName = "SkyExp2Quest", QuestIndex = 2, EnemyName = "Royal Soldier" },
+	{ MinLevel = 700, MaxLevel = 724, NpcName = "Fountain Quest Giver", QuestName = "FountainQuest", QuestIndex = 1, EnemyName = "Galley Pirate" },
+	{ MinLevel = 725, MaxLevel = 774, NpcName = "Fountain Quest Giver", QuestName = "FountainQuest", QuestIndex = 2, EnemyName = "Galley Captain" },
+	{ MinLevel = 775, MaxLevel = 799, NpcName = "Area 1 Quest Giver", QuestName = "Area1Quest", QuestIndex = 1, EnemyName = "Raider" },
+	{ MinLevel = 800, MaxLevel = 874, NpcName = "Area 1 Quest Giver", QuestName = "Area1Quest", QuestIndex = 2, EnemyName = "Mercenary" },
+	{ MinLevel = 875, MaxLevel = 899, NpcName = "Area 2 Quest Giver", QuestName = "Area2Quest", QuestIndex = 1, EnemyName = "Swan Pirate" },
+	{ MinLevel = 900, MaxLevel = 949, NpcName = "Area 2 Quest Giver", QuestName = "Area2Quest", QuestIndex = 2, EnemyName = "Factory Staff" },
+	{ MinLevel = 950, MaxLevel = 974, NpcName = "Marine Quest Giver 2", QuestName = "MarineQuest3", QuestIndex = 1, EnemyName = "Marine Lieutenant" },
+	{ MinLevel = 975, MaxLevel = 999, NpcName = "Marine Quest Giver 2", QuestName = "MarineQuest3", QuestIndex = 2, EnemyName = "Marine Captain" },
+	{ MinLevel = 1000, MaxLevel = 1049, NpcName = "Zombie Quest Giver", QuestName = "ZombieQuest", QuestIndex = 1, EnemyName = "Zombie" },
+	{ MinLevel = 1050, MaxLevel = 1099, NpcName = "Zombie Quest Giver", QuestName = "ZombieQuest", QuestIndex = 2, EnemyName = "Vampire" },
+	{ MinLevel = 1100, MaxLevel = 1174, NpcName = "Snow Mountain Quest Giver", QuestName = "SnowMountainQuest", QuestIndex = 1, EnemyName = "Snow Trooper" },
+	{ MinLevel = 1175, MaxLevel = 1199, NpcName = "Snow Mountain Quest Giver", QuestName = "SnowMountainQuest", QuestIndex = 2, EnemyName = "Winter Warrior" },
+	{ MinLevel = 1200, MaxLevel = 1249, NpcName = "Ice Side Quest Giver", QuestName = "IceSideQuest", QuestIndex = 1, EnemyName = "Lab Subordinate" },
+	{ MinLevel = 1250, MaxLevel = 1274, NpcName = "Ice Side Quest Giver", QuestName = "IceSideQuest", QuestIndex = 2, EnemyName = "Horned Warrior" },
+	{ MinLevel = 1275, MaxLevel = 1299, NpcName = "Fire Side Quest Giver", QuestName = "FireSideQuest", QuestIndex = 1, EnemyName = "Magma Ninja" },
+	{ MinLevel = 1300, MaxLevel = 1349, NpcName = "Fire Side Quest Giver", QuestName = "FireSideQuest", QuestIndex = 2, EnemyName = "Lava Pirate" },
+	{ MinLevel = 1350, MaxLevel = 1399, NpcName = "Ship Deck Quest Giver", QuestName = "ShipQuest1", QuestIndex = 1, EnemyName = "Ship Deckhand" },
+	{ MinLevel = 1400, MaxLevel = 1424, NpcName = "Ship Deck Quest Giver", QuestName = "ShipQuest1", QuestIndex = 2, EnemyName = "Ship Engineer" },
+	{ MinLevel = 1425, MaxLevel = 1449, NpcName = "Ship Interior Quest Giver", QuestName = "ShipQuest2", QuestIndex = 1, EnemyName = "Ship Steward" },
+	{ MinLevel = 1450, MaxLevel = 1474, NpcName = "Ship Interior Quest Giver", QuestName = "ShipQuest2", QuestIndex = 2, EnemyName = "Ship Officer" },
+	{ MinLevel = 1475, MaxLevel = 1499, NpcName = "Arlong Quest Giver", QuestName = "ArlongQuest", QuestIndex = 1, EnemyName = "Arlong Crew" },
+	{ MinLevel = 1500, MaxLevel = 1524, NpcName = "Port Quest Giver", QuestName = "PortQuest", QuestIndex = 1, EnemyName = "Pirate Millionaire" },
+	{ MinLevel = 1525, MaxLevel = 1574, NpcName = "Port Quest Giver", QuestName = "PortQuest", QuestIndex = 2, EnemyName = "Pistol Billionaire" },
+	{ MinLevel = 1575, MaxLevel = 1599, NpcName = "Hydra Quest Giver", QuestName = "HydraQuest", QuestIndex = 1, EnemyName = "Dragon Crew Warrior" },
+	{ MinLevel = 1600, MaxLevel = 1624, NpcName = "Hydra Quest Giver", QuestName = "HydraQuest", QuestIndex = 2, EnemyName = "Dragon Crew Archer" },
+	{ MinLevel = 1625, MaxLevel = 1649, NpcName = "Great Tree Quest Giver", QuestName = "TreeQuest", QuestIndex = 1, EnemyName = "Marine Commodore" },
+	{ MinLevel = 1650, MaxLevel = 1699, NpcName = "Great Tree Quest Giver", QuestName = "TreeQuest", QuestIndex = 2, EnemyName = "Marine Rear Admiral" },
+	{ MinLevel = 1700, MaxLevel = 1724, NpcName = "Turtle Quest Giver", QuestName = "TurtleQuest", QuestIndex = 1, EnemyName = "Fishman Raider" },
+	{ MinLevel = 1725, MaxLevel = 1774, NpcName = "Turtle Quest Giver", QuestName = "TurtleQuest", QuestIndex = 2, EnemyName = "Fishman Captain" },
+	{ MinLevel = 1775, MaxLevel = 1799, NpcName = "Mansion Quest Giver", QuestName = "MansionQuest", QuestIndex = 1, EnemyName = "Forest Pirate" },
+	{ MinLevel = 1800, MaxLevel = 1824, NpcName = "Mansion Quest Giver", QuestName = "MansionQuest", QuestIndex = 2, EnemyName = "Mythological Pirate" },
+	{ MinLevel = 1825, MaxLevel = 1849, NpcName = "Haunted Quest Giver", QuestName = "HauntedQuest1", QuestIndex = 1, EnemyName = "Jungle Pirate" },
+	{ MinLevel = 1850, MaxLevel = 1899, NpcName = "Haunted Quest Giver", QuestName = "HauntedQuest1", QuestIndex = 2, EnemyName = "Musketeer Pirate" },
+	{ MinLevel = 1900, MaxLevel = 1924, NpcName = "Haunted Quest Giver 2", QuestName = "HauntedQuest2", QuestIndex = 1, EnemyName = "Reborn Skeleton" },
+	{ MinLevel = 1925, MaxLevel = 1974, NpcName = "Haunted Quest Giver 2", QuestName = "HauntedQuest2", QuestIndex = 2, EnemyName = "Living Zombie" },
+	{ MinLevel = 1975, MaxLevel = 1999, NpcName = "Nuts Quest Giver", QuestName = "NutsQuest", QuestIndex = 1, EnemyName = "Demonic Soul" },
+	{ MinLevel = 2000, MaxLevel = 2024, NpcName = "Nuts Quest Giver", QuestName = "NutsQuest", QuestIndex = 2, EnemyName = "Posessed Mummy" },
+	{ MinLevel = 2025, MaxLevel = 2049, NpcName = "Cake Quest Giver", QuestName = "CakeQuest1", QuestIndex = 1, EnemyName = "Cookie Crafter" },
+	{ MinLevel = 2050, MaxLevel = 2074, NpcName = "Cake Quest Giver", QuestName = "CakeQuest1", QuestIndex = 2, EnemyName = "Cake Guard" },
+	{ MinLevel = 2075, MaxLevel = 2099, NpcName = "Cake Quest Giver 2", QuestName = "CakeQuest2", QuestIndex = 1, EnemyName = "Baking Staff" },
+	{ MinLevel = 2100, MaxLevel = 2124, NpcName = "Cake Quest Giver 2", QuestName = "CakeQuest2", QuestIndex = 2, EnemyName = "Head Baker" },
+	{ MinLevel = 2125, MaxLevel = 2149, NpcName = "Choc Quest Giver", QuestName = "ChocQuest1", QuestIndex = 1, EnemyName = "Cocoa Warrior" },
+	{ MinLevel = 2150, MaxLevel = 2199, NpcName = "Choc Quest Giver", QuestName = "ChocQuest1", QuestIndex = 2, EnemyName = "Chocolate Bar Battler" },
+	{ MinLevel = 2200, MaxLevel = 2224, NpcName = "Choc Quest Giver 2", QuestName = "ChocQuest2", QuestIndex = 1, EnemyName = "Sweet Thief" },
+	{ MinLevel = 2225, MaxLevel = 2299, NpcName = "Choc Quest Giver 2", QuestName = "ChocQuest2", QuestIndex = 2, EnemyName = "Candy Rebel" },
+	{ MinLevel = 2300, MaxLevel = 2349, NpcName = "Candy Quest Giver", QuestName = "CandyQuest1", QuestIndex = 1, EnemyName = "Candy Pirate" },
+	{ MinLevel = 2350, MaxLevel = 2399, NpcName = "Candy Quest Giver", QuestName = "CandyQuest1", QuestIndex = 2, EnemyName = "Snow Demon" },
+	{ MinLevel = 2400, MaxLevel = 2449, NpcName = "Tiki Quest Giver", QuestName = "TikiQuest1", QuestIndex = 1, EnemyName = "Isle Outlaw" },
+	{ MinLevel = 2450, MaxLevel = 2474, NpcName = "Tiki Quest Giver", QuestName = "TikiQuest1", QuestIndex = 2, EnemyName = "Island Boy" },
+	{ MinLevel = 2475, MaxLevel = 2524, NpcName = "Tiki Quest Giver 2", QuestName = "TikiQuest2", QuestIndex = 1, EnemyName = "Sun-kissed Warrior" },
+	{ MinLevel = 2525, MaxLevel = 9999, NpcName = "Tiki Quest Giver 2", QuestName = "TikiQuest2", QuestIndex = 2, EnemyName = "Isle Champion" },
 }
 
 local NetFolder = ReplicatedStorage:FindFirstChild("Modules") and ReplicatedStorage.Modules:FindFirstChild("Net")
@@ -53,6 +117,7 @@ local KienState = {
 	ActiveTab = "Farm",
 	LastAttack = 0,
 	LastQuest = 0,
+	LastEquip = 0,
 	LastLevel = nil,
 	LastEnemyName = nil,
 	AnchorPos = nil,
@@ -80,24 +145,6 @@ local function notify(text, duration)
 	if KienState.NotifyLabel then
 		KienState.NotifyLabel.Text = "🔔 " .. tostring(text)
 	end
-end
-
-local function playBeep(isPositive)
-	if not CONFIG.SoundEnabled then
-		return
-	end
-	pcall(function()
-		local s = Instance.new("Sound")
-		s.SoundId = isPositive and "rbxassetid://6026984224" or "rbxassetid://6026984115"
-		s.Volume = 0.55
-		s.Parent = SoundService
-		s:Play()
-		task.delay(1.5, function()
-			if s then
-				s:Destroy()
-			end
-		end)
-	end)
 end
 
 local function getPlayerLevel()
@@ -208,6 +255,62 @@ local function applyNoClip(char)
 		if p:IsA("BasePart") and p.CanCollide then
 			p.CanCollide = false
 		end
+	end
+end
+
+local function isToolAllowed(tool)
+	if not tool or not tool:IsA("Tool") then
+		return false
+	end
+	local lowerName = string.lower(tool.Name)
+	for _, blocked in ipairs(EXCLUDED_KEYWORDS) do
+		if string.find(lowerName, blocked, 1, true) then
+			return false
+		end
+	end
+	local attr = tool:GetAttribute("WeaponType")
+	if type(attr) == "string" then
+		local t = string.lower(attr)
+		return (t == "melee" or t == "sword")
+	end
+	return true
+end
+
+local function ensureWeaponEquipped(char, hum)
+	if not CONFIG.AutoEquipWeapon or not char or not hum then
+		return
+	end
+	local currentTool = char:FindFirstChildOfClass("Tool")
+	if currentTool and isToolAllowed(currentTool) then
+		return
+	end
+	local backpack = LocalPlayer:FindFirstChild("Backpack")
+	if not backpack then
+		return
+	end
+	local bestMelee, bestSword = nil, nil
+	for _, item in ipairs(backpack:GetChildren()) do
+		if isToolAllowed(item) then
+			local lowerName = string.lower(item.Name)
+			local isMelee = false
+			for _, kw in ipairs(MELEE_KEYWORDS) do
+				if string.find(lowerName, kw, 1, true) then
+					isMelee = true
+					break
+				end
+			end
+			if isMelee and not bestMelee then
+				bestMelee = item
+			elseif not bestSword then
+				bestSword = item
+			end
+		end
+	end
+	local pick = bestMelee or bestSword
+	if pick then
+		pcall(function()
+			hum:EquipTool(pick)
+		end)
 	end
 end
 
@@ -465,16 +568,11 @@ local function getEquippedMeleeOrSword(char)
 		return nil, nil
 	end
 	local tool = char:FindFirstChildOfClass("Tool")
-	if not tool then
+	if not isToolAllowed(tool) then
 		return nil, nil
 	end
-	local lowerName = string.lower(tool.Name)
-	for _, blocked in ipairs(EXCLUDED_KEYWORDS) do
-		if string.find(lowerName, blocked, 1, true) then
-			return nil, nil
-		end
-	end
 
+	local lowerName = string.lower(tool.Name)
 	local attr = tool:GetAttribute("WeaponType")
 	if type(attr) == "string" then
 		local t = string.lower(attr)
@@ -482,8 +580,6 @@ local function getEquippedMeleeOrSword(char)
 			return tool, CONFIG.MeleeDelay
 		elseif t == "sword" then
 			return tool, CONFIG.SwordDelay
-		else
-			return nil, nil
 		end
 	end
 
@@ -559,11 +655,11 @@ local function createCleanUI()
 
 	local notifyBar = Instance.new("TextLabel")
 	notifyBar.Name = "Kien94NotifyBar"
-	notifyBar.Size = UDim2.new(0, 290, 0, 28)
-	notifyBar.Position = UDim2.new(0.5, -145, 0.06, 0)
+	notifyBar.Size = UDim2.new(0, 300, 0, 28)
+	notifyBar.Position = UDim2.new(0.5, -150, 0.06, 0)
 	notifyBar.BackgroundColor3 = Color3.fromRGB(12, 16, 28)
 	notifyBar.BackgroundTransparency = 0.35
-	notifyBar.Text = "🔔 Kiên 94 • √12kientomato đã sẵn sàng"
+	notifyBar.Text = "🔔 Kiên 94 • Kaitun Full Map sẵn sàng"
 	notifyBar.Font = Enum.Font.GothamBold
 	notifyBar.TextSize = 11
 	notifyBar.TextColor3 = Color3.fromRGB(145, 245, 255)
@@ -595,8 +691,8 @@ local function createCleanUI()
 
 	local panel = Instance.new("Frame")
 	panel.Name = "Kien94GlassPanel"
-	panel.Size = UDim2.new(0, 276, 0, 272)
-	panel.Position = UDim2.new(0.5, -138, 0.18, 0)
+	panel.Size = UDim2.new(0, 282, 0, 294)
+	panel.Position = UDim2.new(0.5, -141, 0.17, 0)
 	panel.BackgroundColor3 = Color3.fromRGB(10, 14, 26)
 	panel.BackgroundTransparency = 0.54
 	panel.BorderSizePixel = 0
@@ -627,7 +723,7 @@ local function createCleanUI()
 	title.Size = UDim2.new(1, -38, 0, 18)
 	title.Position = UDim2.new(0, 10, 0, 3)
 	title.BackgroundTransparency = 1
-	title.Text = CONFIG.HubTitle .. " • VIP PRO"
+	title.Text = CONFIG.HubTitle .. " • Kaitun Full Map"
 	title.Font = Enum.Font.GothamBlack
 	title.TextSize = 13
 	title.TextXAlignment = Enum.TextXAlignment.Left
@@ -705,9 +801,21 @@ local function createCleanUI()
 	Instance.new("UICorner", farmStatus).CornerRadius = UDim.new(0, 8)
 	KienState.UI.FarmStatus = farmStatus
 
+	local kaitunBtn = Instance.new("TextButton")
+	kaitunBtn.Size = UDim2.new(1, 0, 0, 30)
+	kaitunBtn.Position = UDim2.new(0, 0, 0, 36)
+	kaitunBtn.Text = "Kaitun Mode: ON"
+	kaitunBtn.Font = Enum.Font.GothamBlack
+	kaitunBtn.TextSize = 11
+	kaitunBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	kaitunBtn.BackgroundTransparency = 0.22
+	kaitunBtn.BorderSizePixel = 0
+	kaitunBtn.Parent = farmPage
+	Instance.new("UICorner", kaitunBtn).CornerRadius = UDim.new(0, 8)
+
 	local autoFarmBtn = Instance.new("TextButton")
-	autoFarmBtn.Size = UDim2.new(0.49, -2, 0, 30)
-	autoFarmBtn.Position = UDim2.new(0, 0, 0, 38)
+	autoFarmBtn.Size = UDim2.new(0.49, -2, 0, 28)
+	autoFarmBtn.Position = UDim2.new(0, 0, 0, 70)
 	autoFarmBtn.Text = "Auto Farm: ON"
 	autoFarmBtn.Font = Enum.Font.GothamBold
 	autoFarmBtn.TextSize = 11
@@ -718,8 +826,8 @@ local function createCleanUI()
 	Instance.new("UICorner", autoFarmBtn).CornerRadius = UDim.new(0, 8)
 
 	local autoQuestBtn = Instance.new("TextButton")
-	autoQuestBtn.Size = UDim2.new(0.49, -2, 0, 30)
-	autoQuestBtn.Position = UDim2.new(0.51, 2, 0, 38)
+	autoQuestBtn.Size = UDim2.new(0.49, -2, 0, 28)
+	autoQuestBtn.Position = UDim2.new(0.51, 2, 0, 70)
 	autoQuestBtn.Text = "Auto Quest: ON"
 	autoQuestBtn.Font = Enum.Font.GothamBold
 	autoQuestBtn.TextSize = 11
@@ -730,8 +838,8 @@ local function createCleanUI()
 	Instance.new("UICorner", autoQuestBtn).CornerRadius = UDim.new(0, 8)
 
 	local bringMobBtn = Instance.new("TextButton")
-	bringMobBtn.Size = UDim2.new(1, 0, 0, 30)
-	bringMobBtn.Position = UDim2.new(0, 0, 0, 74)
+	bringMobBtn.Size = UDim2.new(1, 0, 0, 28)
+	bringMobBtn.Position = UDim2.new(0, 0, 0, 102)
 	bringMobBtn.Text = "Bring Mob: ON"
 	bringMobBtn.Font = Enum.Font.GothamBold
 	bringMobBtn.TextSize = 11
@@ -742,8 +850,8 @@ local function createCleanUI()
 	Instance.new("UICorner", bringMobBtn).CornerRadius = UDim.new(0, 8)
 
 	local heightLbl = Instance.new("TextLabel")
-	heightLbl.Size = UDim2.new(1, 0, 0, 20)
-	heightLbl.Position = UDim2.new(0, 0, 0, 110)
+	heightLbl.Size = UDim2.new(1, 0, 0, 18)
+	heightLbl.Position = UDim2.new(0, 0, 0, 134)
 	heightLbl.BackgroundTransparency = 1
 	heightLbl.Text = "Độ cao trên đầu quái: " .. CONFIG.AboveHeadHeight .. " studs"
 	heightLbl.Font = Enum.Font.GothamMedium
@@ -753,8 +861,8 @@ local function createCleanUI()
 	heightLbl.Parent = farmPage
 
 	local hMinus = Instance.new("TextButton")
-	hMinus.Size = UDim2.new(0.49, -2, 0, 28)
-	hMinus.Position = UDim2.new(0, 0, 0, 134)
+	hMinus.Size = UDim2.new(0.49, -2, 0, 26)
+	hMinus.Position = UDim2.new(0, 0, 0, 154)
 	hMinus.Text = "- Hạ xuống"
 	hMinus.Font = Enum.Font.GothamBold
 	hMinus.TextSize = 11
@@ -766,8 +874,8 @@ local function createCleanUI()
 	Instance.new("UICorner", hMinus).CornerRadius = UDim.new(0, 8)
 
 	local hPlus = Instance.new("TextButton")
-	hPlus.Size = UDim2.new(0.49, -2, 0, 28)
-	hPlus.Position = UDim2.new(0.51, 2, 0, 134)
+	hPlus.Size = UDim2.new(0.49, -2, 0, 26)
+	hPlus.Position = UDim2.new(0.51, 2, 0, 154)
 	hPlus.Text = "+ Nâng lên"
 	hPlus.Font = Enum.Font.GothamBold
 	hPlus.TextSize = 11
@@ -780,7 +888,7 @@ local function createCleanUI()
 
 	local mobInfoLbl = Instance.new("TextLabel")
 	mobInfoLbl.Size = UDim2.new(1, 0, 0, 18)
-	mobInfoLbl.Position = UDim2.new(0, 0, 0, 166)
+	mobInfoLbl.Position = UDim2.new(0, 0, 0, 183)
 	mobInfoLbl.BackgroundTransparency = 1
 	mobInfoLbl.Text = "Quái đã gom: 0"
 	mobInfoLbl.Font = Enum.Font.GothamMedium
@@ -788,8 +896,7 @@ local function createCleanUI()
 	mobInfoLbl.TextColor3 = Color3.fromRGB(150, 250, 210)
 	mobInfoLbl.Parent = farmPage
 	KienState.UI.MobInfo = mobInfoLbl
-
-	local attackPage = Instance.new("Frame")
+		local attackPage = Instance.new("Frame")
 	attackPage.Size = UDim2.new(1, -12, 1, -84)
 	attackPage.Position = UDim2.new(0, 6, 0, 80)
 	attackPage.BackgroundTransparency = 1
@@ -894,7 +1001,7 @@ local function createCleanUI()
 	infoBox.Position = UDim2.new(0, 0, 0, 2)
 	infoBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	infoBox.BackgroundTransparency = 0.92
-	infoBox.Text = "Hub: √12kientomato • Kiên 94\n• Tự nhận quest theo level\n• Bay cố định trên đầu quái & đổi quái khi lên level\n• Bring Mob mượt không mất máu\n• Auto Attack 60 studs khi cầm Võ/Kiếm"
+	infoBox.Text = "Hub: √12kientomato • Kiên 94\n• Kaitun tự Farm, tự nhận Quest, tự cầm Võ/Kiếm\n• Đầy đủ mốc quái Full Map (Lv 1 -> 2525+)\n• Bay cố định trên đầu quái & đổi mục tiêu khi lên level\n• Bring Mob mượt & Auto Attack tầm 60"
 	infoBox.Font = Enum.Font.GothamMedium
 	infoBox.TextSize = 11
 	infoBox.TextColor3 = Color3.fromRGB(225, 248, 255)
@@ -910,6 +1017,9 @@ local function createCleanUI()
 		tabFarmBtn.BackgroundTransparency = (KienState.ActiveTab == "Farm") and 0.45 or 0.88
 		tabAttackBtn.BackgroundTransparency = (KienState.ActiveTab == "Attack") and 0.45 or 0.88
 		tabInfoBtn.BackgroundTransparency = (KienState.ActiveTab == "Info") and 0.45 or 0.88
+
+		kaitunBtn.Text = CONFIG.KaitunMode and "Kaitun Mode: ON" or "Kaitun Mode: OFF"
+		kaitunBtn.BackgroundColor3 = CONFIG.KaitunMode and Color3.fromRGB(145, 75, 255) or Color3.fromRGB(85, 90, 110)
 
 		autoFarmBtn.Text = KienState.AutoFarm and "Auto Farm: ON" or "Auto Farm: OFF"
 		autoFarmBtn.BackgroundColor3 = KienState.AutoFarm and Color3.fromRGB(0, 190, 135) or Color3.fromRGB(215, 60, 75)
@@ -944,23 +1054,35 @@ local function createCleanUI()
 		notify("Đã mở tab Info", 1.5)
 	end)
 
+	kaitunBtn.MouseButton1Click:Connect(function()
+		CONFIG.KaitunMode = not CONFIG.KaitunMode
+		if CONFIG.KaitunMode then
+			KienState.AutoFarm = true
+			CONFIG.AutoQuest = true
+			CONFIG.BringMobEnabled = true
+			CONFIG.AutoAttack = true
+			CONFIG.AutoEquipWeapon = true
+		end
+		refreshAll()
+		notify(CONFIG.KaitunMode and "Kaitun Mode: BẬT (Tự động toàn bộ)" or "Kaitun Mode: TẮT")
+	end)
+
 	autoFarmBtn.MouseButton1Click:Connect(function()
 		KienState.AutoFarm = not KienState.AutoFarm
 		if not KienState.AutoFarm then
+			CONFIG.KaitunMode = false
 			stopHover()
 			cleanupAllMobs()
 			KienState.LockedEnemy = nil
 			KienState.AnchorPos = nil
 		end
 		refreshAll()
-		playBeep(KienState.AutoFarm)
 		notify(KienState.AutoFarm and "Auto Farm: BẬT" or "Auto Farm: TẮT")
 	end)
 
 	autoQuestBtn.MouseButton1Click:Connect(function()
 		CONFIG.AutoQuest = not CONFIG.AutoQuest
 		refreshAll()
-		playBeep(CONFIG.AutoQuest)
 		notify(CONFIG.AutoQuest and "Auto Quest: BẬT" or "Auto Quest: TẮT")
 	end)
 
@@ -970,14 +1092,12 @@ local function createCleanUI()
 			cleanupAllMobs()
 		end
 		refreshAll()
-		playBeep(CONFIG.BringMobEnabled)
 		notify(CONFIG.BringMobEnabled and "Bring Mob: BẬT" or "Bring Mob: TẮT")
 	end)
 
 	autoAtkBtn.MouseButton1Click:Connect(function()
 		CONFIG.AutoAttack = not CONFIG.AutoAttack
 		refreshAll()
-		playBeep(CONFIG.AutoAttack)
 		notify(CONFIG.AutoAttack and "Auto Attack (60): BẬT" or "Auto Attack (60): TẮT")
 	end)
 
@@ -1063,8 +1183,16 @@ createCleanUI()
 RunService.Heartbeat:Connect(function(dt)
 	local now = os.clock()
 
+	if CONFIG.KaitunMode then
+		KienState.AutoFarm = true
+		CONFIG.AutoQuest = true
+		CONFIG.BringMobEnabled = true
+		CONFIG.AutoAttack = true
+	end
+
 	if KienState.NotifyLabel and now > KienState.NotifyClearAt then
-		KienState.NotifyLabel.Text = "🔔 " .. CONFIG.HubTitle .. " • Lv " .. tostring(getPlayerLevel())
+		local modeTag = CONFIG.KaitunMode and "KAITUN" or "FARM"
+		KienState.NotifyLabel.Text = "🔔 " .. CONFIG.HubTitle .. " • " .. modeTag .. " • Lv " .. tostring(getPlayerLevel())
 	end
 
 	local level = getPlayerLevel()
@@ -1086,7 +1214,7 @@ RunService.Heartbeat:Connect(function(dt)
 
 	if not KienState.AutoFarm then
 		stopHover()
-				cleanupAllMobs()
+		cleanupAllMobs()
 		if KienState.UI.MobInfo then
 			KienState.UI.MobInfo.Text = "Quái đã gom: 0"
 		end
@@ -1101,6 +1229,11 @@ RunService.Heartbeat:Connect(function(dt)
 	end
 
 	applyNoClip(char)
+
+	if CONFIG.KaitunMode and (now - KienState.LastEquip >= 0.8) then
+		KienState.LastEquip = now
+		ensureWeaponEquipped(char, hum)
+	end
 
 	if CONFIG.AutoQuest and not hasActiveQuest() and (now - KienState.LastQuest >= CONFIG.QuestCooldown) then
 		local npcModel = findQuestNpcModel(questEntry.NpcName)
