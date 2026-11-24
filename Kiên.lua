@@ -1,4 +1,4 @@
--- [PHẦN 1/3] √12kientomato | Kiên 94 - VIP PRO (Config, Quest, Mob & Combat Core)
+-- [PHẦN 1/3] √12kientomato | Kiên 94 - VIP PRO (Safe Config, Quest & Core)
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -201,11 +201,11 @@ local function triggerQuestAccept(npcModel, questEntry)
 
 	if npcModel then
 		for _, desc in ipairs(npcModel:GetDescendants()) do
-			if desc:IsA("ProximityPrompt") then
+			if desc:IsA("ProximityPrompt") and typeof(fireproximityprompt) == "function" then
 				pcall(function()
 					fireproximityprompt(desc)
 				end)
-			elseif desc:IsA("ClickDetector") then
+			elseif desc:IsA("ClickDetector") and typeof(fireclickdetector) == "function" then
 				pcall(function()
 					fireclickdetector(desc)
 				end)
@@ -407,7 +407,7 @@ local function bringMobsToSpot(anchorPos, expectedName)
 			if (root.Position - anchorPos).Magnitude <= CONFIG.BringRadius then
 				count += 1
 				pcall(function()
-					if sethiddenproperty then
+					if typeof(sethiddenproperty) == "function" then
 						sethiddenproperty(root, "NetworkIsSleeping", false)
 					end
 				end)
@@ -656,7 +656,6 @@ local function createMultiTabGlassUI()
 	hideBtn.Parent = header
 	Instance.new("UICorner", hideBtn).CornerRadius = UDim.new(1, 0)
 
-	-- Thanh 3 Tab
 	local tabBar = Instance.new("Frame")
 	tabBar.Size = UDim2.new(1, -12, 0, 28)
 	tabBar.Position = UDim2.new(0, 6, 0, 48)
@@ -683,7 +682,6 @@ local function createMultiTabGlassUI()
 	local tabAttackBtn = makeTabBtn("Attack", 0.333, 0.333, 2, -3)
 	local tabInfoBtn = makeTabBtn("Info", 0.666, 0.334, 3, -3)
 
-	-- Tab 1: Farm
 	local farmPage = Instance.new("Frame")
 	farmPage.Size = UDim2.new(1, -12, 1, -84)
 	farmPage.Position = UDim2.new(0, 6, 0, 80)
@@ -789,7 +787,6 @@ local function createMultiTabGlassUI()
 	mobInfoLbl.Parent = farmPage
 	KienState.UI.MobInfo = mobInfoLbl
 
-	-- Tab 2: Attack
 	local attackPage = Instance.new("Frame")
 	attackPage.Size = UDim2.new(1, -12, 1, -84)
 	attackPage.Position = UDim2.new(0, 6, 0, 80)
@@ -883,7 +880,6 @@ local function createMultiTabGlassUI()
 	sAdd.Parent = attackPage
 	Instance.new("UICorner", sAdd).CornerRadius = UDim.new(0, 8)
 
-	-- Tab 3: Info
 	local infoPage = Instance.new("Frame")
 	infoPage.Size = UDim2.new(1, -12, 1, -84)
 	infoPage.Position = UDim2.new(0, 6, 0, 80)
@@ -1077,7 +1073,6 @@ RunService.Heartbeat:Connect(function(dt)
 	setCharacterNoClip(char)
 	local now = os.clock()
 
-	-- Tự nhận nhiệm vụ khi chưa có nhiệm vụ
 	if CONFIG.AutoQuest and not hasActiveQuest() and (now - KienState.LastQuest >= CONFIG.QuestCooldown) then
 		local npcModel = findQuestNpcModel(questEntry.NpcName)
 		local npcPos = getNpcPosition(npcModel)
@@ -1089,7 +1084,6 @@ RunService.Heartbeat:Connect(function(dt)
 		end
 	end
 
-	-- Bay thẳng lên trên đầu quái theo level và giữ cố định vị trí
 	local farmPart = resolveFarmEnemy(hrp, questEntry.EnemyName, levelChanged)
 	local brought = 0
 
@@ -1106,7 +1100,6 @@ RunService.Heartbeat:Connect(function(dt)
 		KienState.UI.MobInfo.Text = "Quái đã gom: " .. brought
 	end
 
-	-- Auto Attack khi bật & đang cầm Võ hoặc Kiếm trong tầm 60
 	if not CONFIG.AutoAttack then
 		return
 	end
@@ -1125,4 +1118,4 @@ RunService.Heartbeat:Connect(function(dt)
 	end
 end)
 
-print("[" .. CONFIG.HubTitle .. " • " .. CONFIG.HubSub .. "] 3-Part Script Loaded!")
+print("[" .. CONFIG.HubTitle .. " • " .. CONFIG.HubSub .. "] Fixed & Loaded!")
