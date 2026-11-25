@@ -5,15 +5,16 @@ local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 
--- ==========================================
--- 1. CẤU HÌNH CHUNG & TRẠNG THÁI CORE
--- ==========================================
 local CFG = {
 	Delay = 0.13,
 	Range = 60,
 	TweenSpeed = 145,
-	HoverHeight = 6.5,
-	NpcStandOffset = Vector3.new(0, 2.5, 3.5),
+	HoverHeight = 7.5,
+	NpcAboveOffset = Vector3.new(0, 12, 0), -- Bay cao trên đầu NPC rồi đứng im
+	MaxPullMobs = 3, -- Tối đa 2 hoặc 3 con gần nhất (chỉnh 2 hoặc 3)
+	PullRadius = 110,
+	StandFarmOffset = Vector3.new(0, 7.5, 4),
+	QuestReacceptCooldown = 2.0,
 	Session = nil,
 }
 
@@ -22,38 +23,31 @@ local Core = _G.KienVip94Core or {
 	AutoQuest = true,
 	AutoAttack = true,
 	AutoHaki = true,
+	AutoBringMob = true,
 	AntiAfk = true,
 	EspTargetMob = false,
 	LastAtk = 0,
+	LastQuestInvoke = 0,
 	CurrentSea = 1,
 	CurrentLevel = 1,
 	TargetMobName = "Bandit",
-	QuestProgressText = "0/0",
+	QuestProgressText = "Chưa có NV",
 	QuestDone = false,
 	Status = "Idle",
 }
 _G.KienVip94Core = Core
 
 -- ==========================================
--- 2. QUÉT SEA HIỆN TẠI (SEA 1 / SEA 2 / SEA 3)
+-- QUÉT SEA & LEVEL
 -- ==========================================
 local function detectCurrentSea()
 	local placeId = game.PlaceId
-	-- PlaceId chuẩn của Blox Fruits: Sea 1 = 2753915549, Sea 2 = 4442272183, Sea 3 = 7449423635
 	if placeId == 2753915549 then
 		return 1
 	elseif placeId == 4442272183 then
 		return 2
 	elseif placeId == 7449423635 then
 		return 3
-	end
-
-	-- Fallback nhận diện theo mốc level / map nếu chạy ở place phụ hoặc game custom
-	local lv = 1
-	local data = player:FindFirstChild("Data")
-	local lvObj = data and data:FindFirstChild("Level")
-	if lvObj and lvObj:IsA("ValueBase") then
-		lv = lvObj.Value
 	end
 
 	local map = workspace:FindFirstChild("Map")
@@ -65,17 +59,13 @@ local function detectCurrentSea()
 		end
 	end
 
-	if lv >= 1500 then
-		return 3
-	elseif lv >= 700 then
-		return 2
-	end
+	local data = player:FindFirstChild("Data")
+	local lvObj = data and data:FindFirstChild("Level")
+	local lv = (lvObj and lvObj:IsA("ValueBase")) and tonumber(lvObj.Value) or 1
+	if lv >= 1500 then return 3 elseif lv >= 700 then return 2 end
 	return 1
 end
 
--- ==========================================
--- 3. QUÉT ĐÚNG LEVEL NGƯỜI CHƠI
--- ==========================================
 local function scanPlayerLevel()
 	local data = player:FindFirstChild("Data")
 	if data then
@@ -98,19 +88,17 @@ local function scanPlayerLevel()
 	local lvLabel = mainGui and mainGui:FindFirstChild("Level")
 	if lvLabel and lvLabel:IsA("TextLabel") then
 		local num = tonumber(string.match(lvLabel.Text, "%d+"))
-		if num then
-			return num
-		end
+		if num then return num end
 	end
 
 	return 1
 end
 
 -- ==========================================
--- 4. DANH SÁCH ĐẦY ĐỦ QUÁI / ĐẢO CẢ 3 SEA
+-- DỮ LIỆU NHIỆM VỤ & ĐẢO CẢ 3 SEA
 -- ==========================================
 local MobQuestTable = {
-	-- ================= SEA 1 (Lv 1 -> 700) =================
+	-- SEA 1
 	{ sea = 1, minLevel = 1,   questName = "BanditQuest1",     questId = 1, questPos = Vector3.new(1059.37, 16.51, 1544.53),    mobName = "Bandit",             spawnPos = Vector3.new(1145.0, 17.0, 1635.0) },
 	{ sea = 1, minLevel = 10,  questName = "JungleQuest",      questId = 1, questPos = Vector3.new(-1598.09, 35.55, 153.38),   mobName = "Monkey",             spawnPos = Vector3.new(-1490.0, 38.0, 28.0) },
 	{ sea = 1, minLevel = 15,  questName = "JungleQuest",      questId = 2, questPos = Vector3.new(-1598.09, 35.55, 153.38),   mobName = "Gorilla",            spawnPos = Vector3.new(-1220.0, 42.0, -560.0) },
@@ -137,8 +125,7 @@ local MobQuestTable = {
 	{ sea = 1, minLevel = 550, questName = "SkyExp2Quest",     questId = 2, questPos = Vector3.new(-7903.38, 5635.98, -1410.92),mobName = "Royal Soldier",      spawnPos = Vector3.new(-7825.0, 5650.0, -1720.0) },
 	{ sea = 1, minLevel = 625, questName = "FountainQuest",    questId = 1, questPos = Vector3.new(5258.27, 38.52, 4050.04),  mobName = "Galley Pirate",      spawnPos = Vector3.new(5560.0, 50.0, 3995.0) },
 	{ sea = 1, minLevel = 650, questName = "FountainQuest",    questId = 2, questPos = Vector3.new(5258.27, 38.52, 4050.04),  mobName = "Galley Captain",     spawnPos = Vector3.new(5665.0, 55.0, 4920.0) },
-
-	-- ================= SEA 2 (Lv 700 -> 1500) =================
+	-- SEA 2
 	{ sea = 2, minLevel = 700,  questName = "Area1Quest",       questId = 1, questPos = Vector3.new(-427.72, 73.04, 1836.94),   mobName = "Raider",             spawnPos = Vector3.new(-740.0, 39.0, 2340.0) },
 	{ sea = 2, minLevel = 725,  questName = "Area1Quest",       questId = 2, questPos = Vector3.new(-427.72, 73.04, 1836.94),   mobName = "Mercenary",          spawnPos = Vector3.new(-975.0, 75.0, 1435.0) },
 	{ sea = 2, minLevel = 775,  questName = "Area2Quest",       questId = 1, questPos = Vector3.new(635.61, 73.49, 919.36),     mobName = "Swan Pirate",        spawnPos = Vector3.new(1060.0, 120.0, 1280.0) },
@@ -160,8 +147,7 @@ local MobQuestTable = {
 	{ sea = 2, minLevel = 1350, questName = "FrostQuest",       questId = 1, questPos = Vector3.new(6529.08, 141.86, -1107.28), mobName = "Arctic Warrior",     spawnPos = Vector3.new(5965.0, 30.0, -1240.0) },
 	{ sea = 2, minLevel = 1425, questName = "ForgottenQuest",   questId = 1, questPos = Vector3.new(-3053.98, 236.88, -10147.79),mobName = "Water Fighter",      spawnPos = Vector3.new(-3350.0, 290.0, -10525.0) },
 	{ sea = 2, minLevel = 1450, questName = "ForgottenQuest",   questId = 2, questPos = Vector3.new(-3053.98, 236.88, -10147.79),mobName = "Tide Keeper",        spawnPos = Vector3.new(-2690.0, 238.0, -10280.0) },
-
-	-- ================= SEA 3 (Lv 1500 -> Max) =================
+	-- SEA 3
 	{ sea = 3, minLevel = 1500, questName = "PiratePortQuest",  questId = 1, questPos = Vector3.new(-290.07, 42.90, 5581.59),   mobName = "Pirate Millionaire",  spawnPos = Vector3.new(-370.0, 45.0, 5450.0) },
 	{ sea = 3, minLevel = 1525, questName = "PiratePortQuest",  questId = 2, questPos = Vector3.new(-290.07, 42.90, 5581.59),   mobName = "Pistol Billionaire",  spawnPos = Vector3.new(-185.0, 85.0, 6015.0) },
 	{ sea = 3, minLevel = 1575, questName = "AmazonQuest",      questId = 1, questPos = Vector3.new(5832.83, 51.39, -1105.61),  mobName = "Dragon Crew Warrior", spawnPos = Vector3.new(6300.0, 55.0, -1230.0) },
@@ -213,9 +199,10 @@ local function getQuestForSeaAndLevel(sea, lv)
 end
 
 -- ==========================================
--- 5. ĐỌC TIẾN TRÌNH NHIỆM VỤ (VD: 3/8 -> CHỈ NHẬN TIẾP KHI ĐỦ 8/8)
+-- ĐỌC TIẾN TRÌNH NV CHÍNH XÁC (CHỐNG RESET VỀ 0)
+-- Trả về: hasActiveQuest, progressText, isQuestComplete
 -- ==========================================
-local function readQuestProgress()
+local function readQuestProgressStrict()
 	local pGui = player:FindFirstChild("PlayerGui")
 	local mainGui = pGui and pGui:FindFirstChild("Main")
 	local qFrame = mainGui and mainGui:FindFirstChild("Quest")
@@ -224,26 +211,32 @@ local function readQuestProgress()
 		return false, "Chưa có NV", false
 	end
 
-	local progText = nil
+	local bestCur, bestReq = nil, nil
 	for _, obj in ipairs(qFrame:GetDescendants()) do
 		if obj:IsA("TextLabel") and obj.Visible then
 			local cur, req = string.match(obj.Text, "(%d+)%s*/%s*(%d+)")
 			if cur and req then
 				cur = tonumber(cur)
 				req = tonumber(req)
-				progText = tostring(cur) .. "/" .. tostring(req)
-				local isDone = (req > 0 and cur >= req)
-				return true, progText, isDone
+				if req and req > 0 then
+					bestCur = cur
+					bestReq = req
+					break
+				end
 			end
 		end
 	end
 
+	if bestCur and bestReq then
+		local isComplete = (bestCur >= bestReq)
+		return true, tostring(bestCur) .. "/" .. tostring(bestReq), isComplete
+	end
+
+	-- Nếu khung Quest đang bật mà chưa đọc kịp số x/y:
+	-- TUYỆT ĐỐI KHÔNG coi là xong NV để tránh chạy về NPC nhận lại reset về 0
 	return true, "Đang làm", false
 end
 
--- ==========================================
--- 6. REMOTES, DI CHUYỂN 145 CHỐNG GIẬT & ATTACK 0.13s
--- ==========================================
 local function getCommF()
 	local remotes = ReplicatedStorage:FindFirstChild("Remotes")
 	return remotes and remotes:FindFirstChild("CommF_")
@@ -275,7 +268,7 @@ local function getCharParts()
 	return char, hrp, hum
 end
 
-local function stabilizeVelocity(hrp)
+local function freezeVelocity(hrp)
 	if not hrp then return end
 	pcall(function()
 		hrp.AssemblyLinearVelocity = Vector3.zero
@@ -300,67 +293,118 @@ local function flyTo(hrp, hum, targetPos, lookTargetPos)
 	hum.PlatformStand = true
 
 	while char and char.Parent and hum.Health > 0 do
-		stabilizeVelocity(hrp)
+		freezeVelocity(hrp)
 		local currentPos = hrp.Position
 		local delta = targetPos - currentPos
 		local dist = delta.Magnitude
-		if dist <= 3.5 then
+		if dist <= 2.5 then
 			break
 		end
 
 		local dt = RunService.Heartbeat:Wait()
 		local step = math.min(dist, CFG.TweenSpeed * dt)
 		local nextPos = currentPos + delta.Unit * step
-
-		if lookTargetPos then
-			hrp.CFrame = CFrame.lookAt(nextPos, lookTargetPos)
-		else
-			hrp.CFrame = CFrame.lookAt(nextPos, targetPos)
-		end
-		stabilizeVelocity(hrp)
+		hrp.CFrame = CFrame.lookAt(nextPos, lookTargetPos or targetPos)
+		freezeVelocity(hrp)
 	end
 
-	if lookTargetPos then
-		hrp.CFrame = CFrame.lookAt(targetPos, lookTargetPos)
-	else
-		hrp.CFrame = CFrame.new(targetPos)
-	end
-	stabilizeVelocity(hrp)
-
+	hrp.CFrame = CFrame.lookAt(targetPos, lookTargetPos or targetPos)
+	freezeVelocity(hrp)
 	hum.PlatformStand = false
 	setNoClip(false)
 end
 
-local function goToNpcAndAcceptQuest(hrp, hum, q)
+-- Bay cao trên đầu NPC rồi đứng im nhận NV
+local function hoverAboveNpcAndAccept(hrp, hum, q)
 	if not Core.AutoQuest or not q then return end
+	if os.clock() - Core.LastQuestInvoke < CFG.QuestReacceptCooldown then return end
 
-	if q.questPos then
-		local npcSpot = q.questPos + CFG.NpcStandOffset
-		if (hrp.Position - npcSpot).Magnitude > 4 then
-			Core.Status = "Bay tới NPC nhận NV"
-			flyTo(hrp, hum, npcSpot, q.questPos)
-		else
-			hrp.CFrame = CFrame.lookAt(hrp.Position, q.questPos)
-			stabilizeVelocity(hrp)
-		end
-		task.wait(0.2)
+	local abovePos = q.questPos + CFG.NpcAboveOffset
+	if (hrp.Position - abovePos).Magnitude > 3 then
+		Core.Status = "Bay trên đầu NPC (" .. q.questName .. ")"
+		flyTo(hrp, hum, abovePos, q.questPos)
+	end
+
+	-- Đứng im tuyệt đối trên đầu NPC để nhận NV
+	Core.Status = "Đứng im nhận NV"
+	for _ = 1, 4 do
+		hrp.CFrame = CFrame.lookAt(abovePos, q.questPos)
+		freezeVelocity(hrp)
+		task.wait(0.08)
 	end
 
 	local commF = getCommF()
 	if commF then
+		Core.LastQuestInvoke = os.clock()
 		pcall(function()
 			commF:InvokeServer("StartQuest", q.questName, q.questId)
 		end)
-		task.wait(0.25)
+		task.wait(0.35)
+	end
+end
+
+-- Lấy tối đa 2 hoặc 3 con quái sống gần nhất
+local function getClosestMobs(mobName, anchorPos, maxCount)
+	local folder = workspace:FindFirstChild("Enemies")
+	if not folder then return {} end
+
+	local candidates = {}
+	for _, mob in ipairs(folder:GetChildren()) do
+		if mob.Name == mobName then
+			local hum = mob:FindFirstChildOfClass("Humanoid")
+			local root = mob:FindFirstChild("HumanoidRootPart") or mob:FindFirstChild("Head")
+			if hum and hum.Health > 0 and root then
+				local d = (root.Position - anchorPos).Magnitude
+				if d <= CFG.PullRadius then
+					table.insert(candidates, {
+						mob = mob,
+						hum = hum,
+						root = root,
+						dist = d,
+					})
+				end
+			end
+		end
+	end
+
+	table.sort(candidates, function(a, b)
+		return a.dist < b.dist
+	end)
+
+	local picked = {}
+	local limit = math.clamp(maxCount or CFG.MaxPullMobs, 1, 3)
+	for i = 1, math.min(limit, #candidates) do
+		table.insert(picked, candidates[i])
+	end
+	return picked
+end
+
+-- Gom tối đa 2-3 con quái gần nhất: khi thấy chúng di chuyển tới điểm gom thì neo cố định để farm đứng im
+local function pullAndHoldCluster(group, clusterCenter)
+	if not Core.AutoBringMob or #group == 0 then return end
+
+	for idx, item in ipairs(group) do
+		local root = item.root
+		local hum = item.hum
+		if root and hum and hum.Health > 0 then
+			pcall(function()
+				local angle = (idx - 1) * (math.pi * 2 / math.max(1, #group))
+				local slotPos = clusterCenter + Vector3.new(math.cos(angle) * 2.5, 0, math.sin(angle) * 2.5)
+				local toSlot = slotPos - root.Position
+				-- Chỉ kéo nhẹ khi quái còn xa điểm gom để quái tự di chuyển vào cụm
+				if toSlot.Magnitude > 3.5 then
+					root.CFrame = root.CFrame:Lerp(CFrame.new(slotPos), 0.45)
+					root.AssemblyLinearVelocity = Vector3.zero
+				end
+			end)
+		end
 	end
 end
 
 local function equipMelee(char, hum)
 	if not char or not hum then return nil end
 	local equipped = char:FindFirstChildOfClass("Tool")
-	if equipped then
-		return equipped
-	end
+	if equipped then return equipped end
 
 	local backpack = player:FindFirstChild("Backpack")
 	if not backpack then return nil end
@@ -386,9 +430,7 @@ local function ensureBusoHaki()
 	if char and not char:FindFirstChild("HasBuso") then
 		local commF = getCommF()
 		if commF then
-			pcall(function()
-				commF:InvokeServer("Buso")
-			end)
+			pcall(function() commF:InvokeServer("Buso") end)
 		end
 	end
 end
@@ -422,27 +464,6 @@ local function stepAttack(char, hrp, hum)
 	end
 end
 
-local function getNearestMob(mobName, hrp)
-	local folder = workspace:FindFirstChild("Enemies")
-	if not folder or not hrp then return nil end
-
-	local bestPart, bestDist = nil, math.huge
-	for _, m in ipairs(folder:GetChildren()) do
-		if m.Name == mobName then
-			local h = m:FindFirstChildOfClass("Humanoid")
-			local p = m:FindFirstChild("HumanoidRootPart") or m:FindFirstChild("Head")
-			if h and h.Health > 0 and p then
-				local d = (p.Position - hrp.Position).Magnitude
-				if d < bestDist then
-					bestDist = d
-					bestPart = p
-				end
-			end
-		end
-	end
-	return bestPart
-end
-
 player.Idled:Connect(function()
 	if Core.AntiAfk then
 		VirtualUser:CaptureController()
@@ -450,7 +471,7 @@ player.Idled:Connect(function()
 	end
 end)
 
--- Vòng lặp quét Sea & Level liên tục để luôn chuẩn mục tiêu & ESP
+-- Vòng lặp quét Sea, Level & Tiến trình NV
 task.spawn(function()
 	while true do
 		Core.CurrentSea = detectCurrentSea()
@@ -458,19 +479,24 @@ task.spawn(function()
 		local q = getQuestForSeaAndLevel(Core.CurrentSea, Core.CurrentLevel)
 		Core.TargetMobName = q.mobName
 
-		local hasQ, progStr, isDone = readQuestProgress()
-		Core.QuestProgressText = progStr
+		local _, progText, isDone = readQuestProgressStrict()
+		Core.QuestProgressText = progText
 		Core.QuestDone = isDone
 		task.wait(0.25)
 	end
 end)
 
--- Vòng lặp chính Auto Farm Level
+-- Vòng lặp chính: Nhận NV đúng lúc -> Bay tới đảo -> Gom tối đa 2-3 quái -> Đứng im farm không nhấp nhô
+local lockedStandPos = nil
+local lockedMobRef = nil
+
 task.spawn(function()
 	while true do
 		task.wait(0.08)
 		local char, hrp, hum = getCharParts()
 		if not char or not hrp or not hum then
+			lockedStandPos = nil
+			lockedMobRef = nil
 			if Core.AutoFarm then Core.Status = "Respawning..." end
 			continue
 		end
@@ -481,124 +507,141 @@ task.spawn(function()
 			local q = getQuestForSeaAndLevel(sea, lv)
 			Core.TargetMobName = q.mobName
 
-			local hasQ, progStr, isDone = readQuestProgress()
-			Core.QuestProgressText = progStr
+			local hasQ, progText, isDone = readQuestProgressStrict()
+			Core.QuestProgressText = progText
+			Core.QuestDone = isDone
 
-			-- Chỉ bay đi nhận NV tiếp khi chưa có NV hoặc đã hoàn thành đủ số con (ví dụ 8/8)
+			-- Chỉ bay trên đầu NPC nhận NV khi CHƯA có NV hoặc ĐÃ XONG ĐỦ SỐ CON (isDone == true)
 			if Core.AutoQuest and (not hasQ or isDone) then
-				goToNpcAndAcceptQuest(hrp, hum, q)
+				lockedStandPos = nil
+				lockedMobRef = nil
+				hoverAboveNpcAndAccept(hrp, hum, q)
 			end
 
 			local spawnSpot = q.spawnPos + Vector3.new(0, CFG.HoverHeight, 0)
 			if (hrp.Position - spawnSpot).Magnitude > 140 then
-				Core.Status = "Bay tới đảo Sea " .. tostring(sea) .. " (" .. q.mobName .. ")"
+				lockedStandPos = nil
+				lockedMobRef = nil
+				Core.Status = "Bay tới đảo Sea " .. tostring(sea)
 				flyTo(hrp, hum, spawnSpot, q.spawnPos)
 				continue
 			end
 
 			ensureBusoHaki()
 
-			local targetPart = getNearestMob(q.mobName, hrp)
-			if targetPart then
-				local atkSpot = targetPart.Position + Vector3.new(0, CFG.HoverHeight, 3.2)
-				if (hrp.Position - atkSpot).Magnitude > 4.5 then
-					Core.Status = "Farm " .. q.mobName .. " [" .. progStr .. "]"
-					flyTo(hrp, hum, atkSpot, targetPart.Position)
-				else
-					hrp.CFrame = CFrame.lookAt(hrp.Position, targetPart.Position)
-					stabilizeVelocity(hrp)
-					Core.Status = "Đánh " .. q.mobName .. " [" .. progStr .. "]"
-				end
-			else
-				Core.Status = "Chờ spawn " .. q.mobName .. " [" .. progStr .. "]"
-				if (hrp.Position - spawnSpot).Magnitude > 5 then
-					flyTo(hrp, hum, spawnSpot, q.spawnPos)
-				else
-					stabilizeVelocity(hrp)
-				end
-			end
+			local group = getClosestMobs(q.mobName, hrp.Position, CFG.MaxPullMobs)
+			if #group > 0 then
+				local leadMob = group[1].mob
+				local leadRoot = group[1].root
 
-			stepAttack(char, hrp, hum)
+				-- Neo vị trí đứng im khi bắt đầu cụm quái mới để không bị nhấp nhô lên/xuống
+				if not lockedStandPos or not lockedMobRef or not lockedMobRef.Parent or (lockedMobRef.Humanoid and lockedMobRef.Humanoid.Health <= 0) then
+					lockedMobRef = leadMob
+					lockedStandPos = leadRoot.Position + CFG.StandFarmOffset
+				end
+
+				if (hrp.Position - lockedStandPos).Magnitude > 3.5 then
+					Core.Status = "Bay tới cụm " .. tostring(#group) .. " " .. q.mobName
+					flyTo(hrp, hum, lockedStandPos, leadRoot.Position)
+				end
+
+				-- Đứng im tuyệt đối tại vị trí farm, không bay lên hạ xuống
+				hum.PlatformStand = true
+				hrp.CFrame = CFrame.lookAt(lockedStandPos, leadRoot.Position)
+				freezeVelocity(hrp)
+
+				-- Gom tối đa 2-3 con quái gần nhất về cụm bên dưới
+				local clusterGroundPos = Vector3.new(lockedStandPos.X, leadRoot.Position.Y, lockedStandPos.Z)
+				pullAndHoldCluster(group, clusterGroundPos)
+
+				Core.Status = string.format("Đứng im farm %d/%d %s [%s]", #group, CFG.MaxPullMobs, q.mobName, progText)
+				stepAttack(char, hrp, hum)
+			else
+				lockedStandPos = nil
+				lockedMobRef = nil
+				if (hrp.Position - spawnSpot).Magnitude > 4 then
+					Core.Status = "Bay điểm chờ quái"
+					flyTo(hrp, hum, spawnSpot, q.spawnPos)
+				end
+				hum.PlatformStand = true
+				hrp.CFrame = CFrame.lookAt(spawnSpot, q.spawnPos)
+				freezeVelocity(hrp)
+				Core.Status = "Đứng im chờ quái [" .. progText .. "]"
+			end
 		elseif Core.AutoAttack then
 			stepAttack(char, hrp, hum)
 		else
+			lockedStandPos = nil
+			lockedMobRef = nil
 			Core.Status = "Idle"
 		end
 	end
 end)
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-
 local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
 
 local Core = _G.KienVip94Core
 if not Core then
-	warn("[kienvip94] Chưa chạy Phần 1 Core trước!")
+	warn("[kienvip94] Chưa chạy Phần 1/3 trước!")
 	return
 end
 
--- ==========================================
--- 1. HỆ THỐNG ESP TÊN QUÁI CHUẨN BỊ FARM LEVEL
--- ==========================================
-local ESP_TAG_NAME = "KienVip94_TargetMobESP"
+local ESP_NAME = "KienVip94_FarmMobESP"
 
-local function clearAllMobEsp()
+local function clearMobEsp()
 	local folder = workspace:FindFirstChild("Enemies")
 	if not folder then return end
 	for _, mob in ipairs(folder:GetChildren()) do
-		local tag = mob:FindFirstChild(ESP_TAG_NAME)
-		if tag then
-			tag:Destroy()
-		end
+		local tag = mob:FindFirstChild(ESP_NAME)
+		if tag then tag:Destroy() end
 	end
 end
 
-local function attachMobEsp(mob, targetMobName)
-	if not mob or mob.Name ~= targetMobName then
-		local existing = mob and mob:FindFirstChild(ESP_TAG_NAME)
-		if existing then existing:Destroy() end
+local function updateMobEsp(mob, targetName)
+	if not mob or mob.Name ~= targetName then
+		local old = mob and mob:FindFirstChild(ESP_NAME)
+		if old then old:Destroy() end
 		return
 	end
 
 	local hum = mob:FindFirstChildOfClass("Humanoid")
-	local adorneePart = mob:FindFirstChild("Head") or mob:FindFirstChild("HumanoidRootPart")
-	if not hum or hum.Health <= 0 or not adorneePart then
-		local existing = mob:FindFirstChild(ESP_TAG_NAME)
-		if existing then existing:Destroy() end
+	local part = mob:FindFirstChild("Head") or mob:FindFirstChild("HumanoidRootPart")
+	if not hum or hum.Health <= 0 or not part then
+		local old = mob:FindFirstChild(ESP_NAME)
+		if old then old:Destroy() end
 		return
 	end
 
-	local bb = mob:FindFirstChild(ESP_TAG_NAME)
-	if not bb then
-		bb = Instance.new("BillboardGui")
-		bb.Name = ESP_TAG_NAME
-		bb.Adornee = adorneePart
-		bb.Size = UDim2.fromOffset(170, 28)
-		bb.StudsOffset = Vector3.new(0, 2.8, 0)
-		bb.AlwaysOnTop = true
-		bb.Parent = mob
+	local gui = mob:FindFirstChild(ESP_NAME)
+	if not gui then
+		gui = Instance.new("BillboardGui")
+		gui.Name = ESP_NAME
+		gui.Adornee = part
+		gui.Size = UDim2.fromOffset(175, 28)
+		gui.StudsOffset = Vector3.new(0, 2.8, 0)
+		gui.AlwaysOnTop = true
+		gui.Parent = mob
 
 		local lbl = Instance.new("TextLabel")
-		lbl.Name = "EspLabel"
+		lbl.Name = "Tag"
 		lbl.Size = UDim2.fromScale(1, 1)
-		lbl.BackgroundColor3 = Color3.fromRGB(22, 10, 18)
+		lbl.BackgroundColor3 = Color3.fromRGB(24, 10, 18)
 		lbl.BackgroundTransparency = 0.25
-		lbl.TextColor3 = Color3.fromRGB(255, 130, 205)
+		lbl.TextColor3 = Color3.fromRGB(255, 145, 210)
 		lbl.Font = Enum.Font.GothamBold
 		lbl.TextSize = 12
-		lbl.Parent = bb
+		lbl.Parent = gui
 
 		Instance.new("UICorner", lbl).CornerRadius = UDim.new(0, 6)
-		local stroke = Instance.new("UIStroke", lbl)
-		stroke.Color = Color3.fromRGB(255, 55, 160)
-		stroke.Thickness = 1.2
+		local st = Instance.new("UIStroke", lbl)
+		st.Color = Color3.fromRGB(255, 55, 160)
+		st.Thickness = 1.2
 	end
 
-	local lbl = bb:FindFirstChild("EspLabel")
+	local lbl = gui:FindFirstChild("Tag")
 	if lbl and lbl:IsA("TextLabel") then
-		local hpPct = math.clamp(math.floor((hum.Health / math.max(1, hum.MaxHealth)) * 100), 0, 100)
-		lbl.Text = string.format("[FARM] %s (%d%%)", mob.Name, hpPct)
+		local hp = math.clamp(math.floor((hum.Health / math.max(1, hum.MaxHealth)) * 100), 0, 100)
+		lbl.Text = string.format("[FARM] %s (%d%%)", mob.Name, hp)
 	end
 end
 
@@ -606,26 +649,30 @@ task.spawn(function()
 	while true do
 		task.wait(0.2)
 		if not Core.EspTargetMob then
-			clearAllMobEsp()
+			clearMobEsp()
 			continue
 		end
 
 		local folder = workspace:FindFirstChild("Enemies")
 		if folder then
 			for _, mob in ipairs(folder:GetChildren()) do
-				attachMobEsp(mob, Core.TargetMobName)
+				updateMobEsp(mob, Core.TargetMobName)
 			end
 		end
 	end
 end)
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
--- ==========================================
--- 2. GIAO DIỆN "kienvip94" — THANH TAB NGANG Ở TRÊN
--- ==========================================
-local oldUi = playerGui:FindFirstChild("KienVip94_UI_Part2")
-if oldUi then
-	oldUi:Destroy()
+local Core = _G.KienVip94Core
+if not Core then
+	warn("[kienvip94] Chưa chạy Phần 1/3 trước!")
+	return
 end
+
+local oldUi = playerGui:FindFirstChild("KienVip94_UI_Part3")
+if oldUi then oldUi:Destroy() end
 
 local UI = {
 	Bg = Color3.fromRGB(16, 17, 23),
@@ -639,7 +686,7 @@ local UI = {
 }
 
 local sg = Instance.new("ScreenGui")
-sg.Name = "KienVip94_UI_Part2"
+sg.Name = "KienVip94_UI_Part3"
 sg.ResetOnSpawn = false
 sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 sg.IgnoreGuiInset = true
@@ -825,54 +872,36 @@ local function makeInfoRow(parent, text)
 end
 
 local pFarm = makeTopTab("Farm Lv")
+local pPull = makeTopTab("Gom Quái")
 local pEsp = makeTopTab("ESP")
-local pAtk = makeTopTab("Attack")
 local pMisc = makeTopTab("Khác")
 
--- Tab Farm Lv: hiển thị Sea, Level, Tiến trình NV (x/y) và công tắc farm
-makeToggle(pFarm, "Auto Farm Level (Bay 145 + Đủ NV)", Core.AutoFarm, function(v)
-	Core.AutoFarm = v
-end)
-makeToggle(pFarm, "Tự Nhận NV Khi Xong Đủ Số Con", Core.AutoQuest, function(v)
-	Core.AutoQuest = v
-end)
-local scanInfoLbl = makeInfoRow(pFarm, "Sea: 1 | Lv: 1 | Quái: Bandit | NV: 0/0")
-local statusInfoLbl = makeInfoRow(pFarm, "Trạng thái: Idle")
+makeToggle(pFarm, "Auto Farm Level (Bay 145 + Đủ NV)", Core.AutoFarm, function(v) Core.AutoFarm = v end)
+makeToggle(pFarm, "Nhận NV Khi Đủ Số Lượng (Trên Đầu NPC)", Core.AutoQuest, function(v) Core.AutoQuest = v end)
+local infoLbl = makeInfoRow(pFarm, "Sea 1 | Lv.1 | Bandit | NV: Chưa có NV")
+local statusLbl = makeInfoRow(pFarm, "Trạng thái: Idle")
 
--- Tab ESP: nút bật/tắt ESP tên con quái chuẩn bị farm level
-makeToggle(pEsp, "ESP Tên Quái Chuẩn Bị Farm Level", Core.EspTargetMob, function(v)
-	Core.EspTargetMob = v
-	if not v then
-		clearAllMobEsp()
-	end
-end)
-local espTargetLbl = makeInfoRow(pEsp, "Mục tiêu ESP: Bandit")
+makeToggle(pPull, "Gom Tối Đa 2-3 Quái + Farm Đứng Im", Core.AutoBringMob, function(v) Core.AutoBringMob = v end)
+makeToggle(pPull, "Auto Attack (0.13s / Range 60)", Core.AutoAttack, function(v) Core.AutoAttack = v end)
 
--- Tab Attack
-makeToggle(pAtk, "Auto Attack (0.13s / Range 60)", Core.AutoAttack, function(v)
-	Core.AutoAttack = v
-end)
-makeToggle(pAtk, "Auto Haki Vũ Trang", Core.AutoHaki, function(v)
-	Core.AutoHaki = v
-end)
+makeToggle(pEsp, "ESP Tên Con Quái Chuẩn Bị Farm Level", Core.EspTargetMob, function(v) Core.EspTargetMob = v end)
+local espInfoLbl = makeInfoRow(pEsp, "Quái chuẩn bị farm: Bandit")
 
--- Tab Khác
-makeToggle(pMisc, "Anti AFK", Core.AntiAfk, function(v)
-	Core.AntiAfk = v
-end)
+makeToggle(pMisc, "Auto Haki Vũ Trang", Core.AutoHaki, function(v) Core.AutoHaki = v end)
+makeToggle(pMisc, "Anti AFK", Core.AntiAfk, function(v) Core.AntiAfk = v end)
 
 task.spawn(function()
 	while true do
 		task.wait(0.25)
-		scanInfoLbl.Text = string.format(
+		infoLbl.Text = string.format(
 			"Sea %d | Lv.%d | %s | NV: %s",
 			Core.CurrentSea,
 			Core.CurrentLevel,
 			Core.TargetMobName,
 			Core.QuestProgressText
 		)
-		statusInfoLbl.Text = "Trạng thái: " .. tostring(Core.Status)
-		espTargetLbl.Text = "Mục tiêu ESP: " .. tostring(Core.TargetMobName)
+		statusLbl.Text = "Trạng thái: " .. tostring(Core.Status)
+		espInfoLbl.Text = "Quái chuẩn bị farm: " .. tostring(Core.TargetMobName)
 	end
 end)
 
