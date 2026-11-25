@@ -13,8 +13,8 @@ local CFG = {
 	Delay = 0.13,
 	Speed = 150,
 	Height = 8,
-	QuestCooldown = 4.0,
-	LevelScanInterval = 0.25,
+	QuestCooldown = 3.5,
+	LevelScanInterval = 0.2,
 	BusoInterval = 3.5,
 	StatInterval = 0.75,
 	StatOrder = {"Melee", "Defense", "Sword", "Demon Fruit", "Gun"},
@@ -34,50 +34,60 @@ local MELEE_NAMES = {
 	"dragon talon", "godhuman", "sanguine art",
 }
 
--- {MinLv, MaxLv, IslandName, IslandPos, NpcName, QuestName, QuestIdx, MobName}
+-- {MinLv, MaxLv, IslandName, NpcPos, MobPos, NpcName, QuestName, QuestIdx, MobName}
 local LEVEL_TABLE = {
-	{1, 9, "Starter Island", Vector3.new(1060, 17, 1547), "Bandit Quest Giver", "BanditQuest1", 1, "Bandit"},
-	{10, 29, "Jungle", Vector3.new(-1598, 36, 153), "Jungle Quest Giver", "JungleQuest", 1, "Monkey"},
-	{30, 59, "Pirate Village", Vector3.new(-1120, 15, 3830), "Pirate Quest Giver", "BuggyQuest1", 1, "Pirate"},
-	{60, 89, "Desert", Vector3.new(897, 6, 4390), "Desert Quest Giver", "DesertQuest", 1, "Desert Bandit"},
-	{90, 119, "Frozen Village", Vector3.new(1390, 87, -1298), "Snow Quest Giver", "SnowQuest", 1, "Snow Bandit"},
-	{120, 149, "Marine Fortress", Vector3.new(-2781, 24, 2060), "Marine Quest Giver", "MarineQuest2", 1, "Chief Petty Officer"},
-	{150, 199, "Skylands", Vector3.new(-4840, 718, -2620), "Sky Quest Giver", "SkyQuest", 1, "Sky Bandit"},
-	{200, 299, "Prison", Vector3.new(4875, 6, 736), "Prisoner Quest Giver", "PrisonerQuest", 1, "Prisoner"},
-	{300, 374, "Colosseum", Vector3.new(-1825, 45, -2740), "Colosseum Quest Giver", "ColosseumQuest", 1, "Toga Warrior"},
-	{375, 449, "Magma Village", Vector3.new(-5315, 12, 8515), "Magma Quest Giver", "MagmaQuest", 1, "Military Soldier"},
-	{450, 524, "Underwater City", Vector3.new(61120, 18, 1569), "Fishman Quest Giver", "FishmanQuest", 1, "Fishman Warrior"},
-	{525, 624, "Upper Skylands", Vector3.new(-4720, 846, -1950), "Sky Exp Quest Giver", "SkyExp1Quest", 1, "God's Guard"},
-	{625, 699, "Fountain / Upper Sky", Vector3.new(-7625, 5605, -1460), "Upper Sky Quest Giver", "SkyExp2Quest", 1, "Royal Squad"},
+	{1, 9, "Starter Island", Vector3.new(1059, 17, 1546), Vector3.new(1145, 17, 1630), "Bandit Quest Giver", "BanditQuest1", 1, "Bandit"},
+	{10, 14, "Jungle", Vector3.new(-1598, 36, 153), Vector3.new(-1480, 36, 120), "Jungle Quest Giver", "JungleQuest", 1, "Monkey"},
+	{15, 29, "Jungle", Vector3.new(-1598, 36, 153), Vector3.new(-1142, 40, -515), "Jungle Quest Giver", "JungleQuest", 2, "Gorilla"},
+	{30, 39, "Pirate Village", Vector3.new(-1120, 15, 3830), Vector3.new(-1215, 15, 3920), "Pirate Quest Giver", "BuggyQuest1", 1, "Pirate"},
+	{40, 59, "Pirate Village", Vector3.new(-1120, 15, 3830), Vector3.new(-1145, 15, 4350), "Pirate Quest Giver", "BuggyQuest1", 2, "Brute"},
+	{60, 74, "Desert", Vector3.new(897, 6, 4390), Vector3.new(950, 6, 4520), "Desert Quest Giver", "DesertQuest", 1, "Desert Bandit"},
+	{75, 89, "Desert", Vector3.new(897, 6, 4390), Vector3.new(1572, 10, 4373), "Desert Quest Giver", "DesertQuest", 2, "Desert Officer"},
+	{90, 99, "Frozen Village", Vector3.new(1390, 87, -1298), Vector3.new(1340, 87, -1380), "Snow Quest Giver", "SnowQuest", 1, "Snow Bandit"},
+	{100, 119, "Frozen Village", Vector3.new(1390, 87, -1298), Vector3.new(1201, 145, -1442), "Snow Quest Giver", "SnowQuest", 2, "Snowman"},
+	{120, 149, "Marine Fortress", Vector3.new(-2781, 24, 2060), Vector3.new(-2920, 24, 2240), "Marine Quest Giver", "MarineQuest2", 1, "Chief Petty Officer"},
+	{150, 174, "Skylands", Vector3.new(-4840, 718, -2620), Vector3.new(-4920, 718, -2660), "Sky Quest Giver", "SkyQuest", 1, "Sky Bandit"},
+	{175, 199, "Skylands", Vector3.new(-4840, 718, -2620), Vector3.new(-5225, 718, -2380), "Sky Quest Giver", "SkyQuest", 2, "Dark Master"},
+	{200, 249, "Prison", Vector3.new(4875, 6, 736), Vector3.new(4850, 6, 940), "Prisoner Quest Giver", "PrisonerQuest", 1, "Prisoner"},
+	{250, 299, "Prison", Vector3.new(4875, 6, 736), Vector3.new(5310, 2, 474), "Prisoner Quest Giver", "PrisonerQuest", 2, "Dangerous Prisoner"},
+	{300, 324, "Colosseum", Vector3.new(-1825, 45, -2740), Vector3.new(-1620, 45, -2840), "Colosseum Quest Giver", "ColosseumQuest", 1, "Toga Warrior"},
+	{325, 374, "Colosseum", Vector3.new(-1825, 45, -2740), Vector3.new(-1290, 8, -2990), "Colosseum Quest Giver", "ColosseumQuest", 2, "Gladiator"},
+	{375, 399, "Magma Village", Vector3.new(-5315, 12, 8515), Vector3.new(-5420, 12, 8620), "Magma Quest Giver", "MagmaQuest", 1, "Military Soldier"},
+	{400, 449, "Magma Village", Vector3.new(-5315, 12, 8515), Vector3.new(-5800, 85, 8820), "Magma Quest Giver", "MagmaQuest", 2, "Military Spy"},
+	{450, 474, "Underwater City", Vector3.new(61120, 18, 1569), Vector3.new(61180, 18, 1380), "Fishman Quest Giver", "FishmanQuest", 1, "Fishman Warrior"},
+	{475, 524, "Underwater City", Vector3.new(61120, 18, 1569), Vector3.new(61866, 57, 3043), "Fishman Quest Giver", "FishmanQuest", 2, "Fishman Commando"},
+	{525, 549, "Upper Skylands", Vector3.new(-4720, 846, -1950), Vector3.new(-4780, 846, -1820), "Sky Exp Quest Giver", "SkyExp1Quest", 1, "God's Guard"},
+	{550, 624, "Upper Skylands", Vector3.new(-7900, 5545, -380), Vector3.new(-7750, 5545, -450), "Sky Exp Quest Giver", "SkyExp1Quest", 2, "Shanda"},
+	{625, 649, "Fountain / Upper Sky", Vector3.new(-7625, 5605, -1460), Vector3.new(-7550, 5605, -1350), "Upper Sky Quest Giver", "SkyExp2Quest", 1, "Royal Squad"},
+	{650, 699, "Fountain / Upper Sky", Vector3.new(-7625, 5605, -1460), Vector3.new(-7835, 5605, -1705), "Upper Sky Quest Giver", "SkyExp2Quest", 2, "Royal Soldier"},
 
-	-- Sea 2 (700 - 1500)
-	{700, 774, "Kingdom of Rose", Vector3.new(-425, 73, 1835), "Area 1 Quest Giver", "Area1Quest", 1, "Raider"},
-	{775, 874, "Green Zone", Vector3.new(-975, 73, 1420), "Area 1 Quest Giver", "Area1Quest", 2, "Mercenary"},
-	{875, 949, "Factory / Rose", Vector3.new(978, 122, 1240), "Area 2 Quest Giver", "Area2Quest", 1, "Swan Pirate"},
-	{950, 999, "Marine Base G1", Vector3.new(-2440, 73, -3215), "Marine Quest Giver 2", "MarineQuest3", 1, "Marine Lieutenant"},
-	{1000, 1099, "Graveyard", Vector3.new(-5495, 48, -795), "Zombie Quest Giver", "ZombieQuest", 1, "Zombie"},
-	{1100, 1199, "Snow Mountain", Vector3.new(535, 401, -5330), "Snow Mountain Quest Giver", "SnowMountainQuest", 1, "Snow Trooper"},
-	{1200, 1274, "Hot & Cold (Ice)", Vector3.new(-5780, 42, -4485), "Ice Side Quest Giver", "IceSideQuest", 1, "Lab Subordinate"},
-	{1275, 1349, "Hot & Cold (Fire)", Vector3.new(-5428, 42, -5960), "Fire Side Quest Giver", "FireSideQuest", 1, "Magma Ninja"},
-	{1350, 1424, "Cursed Ship Deck", Vector3.new(1040, 125, 32910), "Ship Deck Quest Giver", "ShipQuest1", 1, "Ship Deckhand"},
-	{1425, 1499, "Cursed Ship Inside", Vector3.new(915, 141, 33410), "Ship Interior Quest Giver", "ShipQuest2", 1, "Ship Steward"},
+	-- Sea 2 (700 - 1499)
+	{700, 774, "Kingdom of Rose", Vector3.new(-425, 73, 1835), Vector3.new(-550, 73, 2120), "Area 1 Quest Giver", "Area1Quest", 1, "Raider"},
+	{775, 874, "Green Zone", Vector3.new(-975, 73, 1420), Vector3.new(-1150, 73, 1580), "Area 1 Quest Giver", "Area1Quest", 2, "Mercenary"},
+	{875, 949, "Factory / Rose", Vector3.new(978, 122, 1240), Vector3.new(1120, 122, 1340), "Area 2 Quest Giver", "Area2Quest", 1, "Swan Pirate"},
+	{950, 999, "Marine Base G1", Vector3.new(-2440, 73, -3215), Vector3.new(-1870, 73, -3330), "Marine Quest Giver 2", "MarineQuest3", 2, "Marine Captain"},
+	{1000, 1099, "Graveyard", Vector3.new(-5495, 48, -795), Vector3.new(-5620, 48, -860), "Zombie Quest Giver", "ZombieQuest", 1, "Zombie"},
+	{1100, 1199, "Snow Mountain", Vector3.new(535, 401, -5330), Vector3.new(640, 401, -5420), "Snow Mountain Quest Giver", "SnowMountainQuest", 1, "Snow Trooper"},
+	{1200, 1274, "Hot & Cold (Ice)", Vector3.new(-5780, 42, -4485), Vector3.new(-5890, 42, -4580), "Ice Side Quest Giver", "IceSideQuest", 1, "Lab Subordinate"},
+	{1275, 1349, "Hot & Cold (Fire)", Vector3.new(-5428, 42, -5960), Vector3.new(-5340, 42, -6100), "Fire Side Quest Giver", "FireSideQuest", 1, "Magma Ninja"},
+	{1350, 1424, "Cursed Ship Deck", Vector3.new(1040, 125, 32910), Vector3.new(1120, 125, 32990), "Ship Deck Quest Giver", "ShipQuest1", 1, "Ship Deckhand"},
+	{1425, 1499, "Cursed Ship Inside", Vector3.new(915, 141, 33410), Vector3.new(980, 141, 33480), "Ship Interior Quest Giver", "ShipQuest2", 1, "Ship Steward"},
 
 	-- Sea 3 (1500 - 3000)
-	{1500, 1574, "Port Town", Vector3.new(-290, 44, 5580), "Port Quest Giver", "PortQuest", 1, "Pirate Millionaire"},
-	{1575, 1624, "Hydra Island", Vector3.new(5295, 1005, 395), "Hydra Quest Giver", "HydraQuest", 1, "Dragon Crew Warrior"},
-	{1625, 1699, "Great Tree", Vector3.new(2280, 26, -6400), "Great Tree Quest Giver", "TreeQuest", 1, "Marine Commodore"},
-	{1700, 1774, "Floating Turtle", Vector3.new(-10560, 332, -8460), "Turtle Quest Giver", "TurtleQuest", 1, "Fishman Raider"},
-	{1775, 1824, "Mansion", Vector3.new(-13225, 332, -7625), "Mansion Quest Giver", "MansionQuest", 1, "Forest Pirate"},
-	{1825, 1899, "Haunted Castle", Vector3.new(-12120, 332, -10450), "Haunted Quest Giver", "HauntedQuest1", 1, "Jungle Pirate"},
-	{1900, 1999, "Haunted Grave", Vector3.new(-8760, 142, 6060), "Haunted Quest Giver 2", "HauntedQuest2", 1, "Reborn Skeleton"},
-	{2000, 2074, "Sea of Treats", Vector3.new(-2020, 38, -12025), "Cake Quest Giver", "CakeQuest1", 1, "Cookie Crafter"},
-	{2075, 2149, "Cake Island", Vector3.new(-1925, 38, -12855), "Cake Quest Giver 2", "CakeQuest2", 1, "Baking Staff"},
-	{2150, 2249, "Chocolate Island", Vector3.new(235, 25, -12195), "Choc Quest Giver", "ChocQuest1", 1, "Cocoa Warrior"},
-	{2250, 2399, "Candy Island", Vector3.new(-1150, 14, -14930), "Candy Quest Giver", "CandyQuest1", 1, "Candy Pirate"},
-	{2400, 2524, "Tiki Outpost", Vector3.new(-16160, 12, 1345), "Tiki Quest Giver", "TikiQuest1", 1, "Isle Outlaw"},
-	{2525, 2674, "Tiki Upper / Sub-Zone", Vector3.new(-16350, 15, -1060), "Tiki Quest Giver 2", "TikiQuest2", 1, "Sun-kissed Warrior"},
-	{2675, 2850, "Late Sea 3 Grind", Vector3.new(-16620, 110, -1040), "Tiki Quest Giver 2", "TikiQuest2", 2, "Isle Champion"},
-	{2851, 9999, "Max Level Zone (3000)", Vector3.new(-16620, 110, -1040), "Tiki Quest Giver 2", "TikiQuest2", 2, "Isle Champion"},
+	{1500, 1574, "Port Town", Vector3.new(-290, 44, 5580), Vector3.new(-380, 44, 5690), "Port Quest Giver", "PortQuest", 1, "Pirate Millionaire"},
+	{1575, 1624, "Hydra Island", Vector3.new(5295, 1005, 395), Vector3.new(5390, 1005, 480), "Hydra Quest Giver", "HydraQuest", 1, "Dragon Crew Warrior"},
+	{1625, 1699, "Great Tree", Vector3.new(2280, 26, -6400), Vector3.new(2370, 26, -6490), "Great Tree Quest Giver", "TreeQuest", 1, "Marine Commodore"},
+	{1700, 1774, "Floating Turtle", Vector3.new(-10560, 332, -8460), Vector3.new(-10650, 332, -8560), "Turtle Quest Giver", "TurtleQuest", 1, "Fishman Raider"},
+	{1775, 1824, "Mansion", Vector3.new(-13225, 332, -7625), Vector3.new(-13310, 332, -7710), "Mansion Quest Giver", "MansionQuest", 1, "Forest Pirate"},
+	{1825, 1899, "Haunted Castle", Vector3.new(-12120, 332, -10450), Vector3.new(-12210, 332, -10540), "Haunted Quest Giver", "HauntedQuest1", 1, "Jungle Pirate"},
+	{1900, 1999, "Haunted Grave", Vector3.new(-8760, 142, 6060), Vector3.new(-8850, 142, 6150), "Haunted Quest Giver 2", "HauntedQuest2", 1, "Reborn Skeleton"},
+	{2000, 2074, "Sea of Treats", Vector3.new(-2020, 38, -12025), Vector3.new(-2110, 38, -12120), "Cake Quest Giver", "CakeQuest1", 1, "Cookie Crafter"},
+	{2075, 2149, "Cake Island", Vector3.new(-1925, 38, -12855), Vector3.new(-2015, 38, -12945), "Cake Quest Giver 2", "CakeQuest2", 1, "Baking Staff"},
+	{2150, 2249, "Chocolate Island", Vector3.new(235, 25, -12195), Vector3.new(320, 25, -12290), "Choc Quest Giver", "ChocQuest1", 1, "Cocoa Warrior"},
+	{2250, 2399, "Candy Island", Vector3.new(-1150, 14, -14930), Vector3.new(-1240, 14, -15020), "Candy Quest Giver", "CandyQuest1", 1, "Candy Pirate"},
+	{2400, 2524, "Tiki Outpost", Vector3.new(-16160, 12, 1345), Vector3.new(-16250, 12, 1435), "Tiki Quest Giver", "TikiQuest1", 1, "Isle Outlaw"},
+	{2525, 2674, "Tiki Upper / Sub-Zone", Vector3.new(-16350, 15, -1060), Vector3.new(-16440, 15, -1150), "Tiki Quest Giver 2", "TikiQuest2", 1, "Sun-kissed Warrior"},
+	{2675, 9999, "Late Sea 3 / Max 3000", Vector3.new(-16620, 110, -1040), Vector3.new(-16540, 110, -1130), "Tiki Quest Giver 2", "TikiQuest2", 2, "Isle Champion"},
 }
 
 local App = {
@@ -85,7 +95,7 @@ local App = {
 	TrackedLv = nil,
 	LastLvScan = 0,
 	LastLevelGainText = "Chưa tăng Lv",
-	LastIsland = nil,
+	LastStageKey = nil,
 	LastAtk = 0,
 	LastMelee = 0,
 	LastBuso = 0,
@@ -94,7 +104,7 @@ local App = {
 	QuestActive = false,
 	QuestStartLv = nil,
 	QuestStageKey = nil,
-	LastProgressText = "Chưa có NV",
+	LastProgressText = "Chưa nhận NV",
 	BV = nil,
 	BG = nil,
 	NotifyLbl = nil,
@@ -190,15 +200,17 @@ local function getStageByLevel(lv)
 	for _, row in ipairs(LEVEL_TABLE) do
 		if lv >= row[1] and lv <= row[2] then
 			return {
-				minLv = row[1], maxLv = row[2], island = row[3], islandPos = row[4],
-				npc = row[5], quest = row[6], questIdx = row[7], mob = row[8],
+				minLv = row[1], maxLv = row[2], island = row[3],
+				npcPos = row[4], mobPos = row[5], npc = row[6],
+				quest = row[7], questIdx = row[8], mob = row[9],
 			}
 		end
 	end
 	local last = LEVEL_TABLE[#LEVEL_TABLE]
 	return {
-		minLv = last[1], maxLv = last[2], island = last[3], islandPos = last[4],
-		npc = last[5], quest = last[6], questIdx = last[7], mob = last[8],
+		minLv = last[1], maxLv = last[2], island = last[3],
+		npcPos = last[4], mobPos = last[5], npc = last[6],
+		quest = last[7], questIdx = last[8], mob = last[9],
 	}
 end
 
@@ -261,17 +273,34 @@ local function addStatPoint(statName, amount)
 	local remotes = ReplicatedStorage:FindFirstChild("Remotes")
 	local commF = (remotes and remotes:FindFirstChild("CommF_")) or ReplicatedStorage:FindFirstChild("CommF_")
 	if commF and commF:IsA("RemoteFunction") then
-		local ok = pcall(function()
+		return pcall(function()
 			commF:InvokeServer("AddPoint", statName, addCount)
 		end)
-		return ok
 	end
 	return false
 end
 
+-- Ẩn khung dialog NPC nếu game bật lên để nhận nhiệm vụ hoàn toàn ngầm
+local function hideNpcDialogIfOpened()
+	local pg = LocalPlayer:FindFirstChild("PlayerGui")
+	if not pg then return end
+	for _, gui in ipairs(pg:GetChildren()) do
+		if gui:IsA("ScreenGui") and gui.Name ~= "KienProMaxLvlGui" then
+			local lowGui = string.lower(gui.Name)
+			if string.find(lowGui, "dialog", 1, true) or string.find(lowGui, "npc", 1, true) then
+				for _, child in ipairs(gui:GetChildren()) do
+					if child:IsA("GuiObject") and child.Visible then
+						child.Visible = false
+					end
+				end
+			end
+		end
+	end
+end
+
 local function scanQuestBanner()
 	local pg = LocalPlayer:FindFirstChild("PlayerGui")
-	if not pg then return false, "Không thấy NV", 0, 0 end
+	if not pg then return false, "Chưa nhận NV", 0, 0 end
 
 	local foundVisibleQuest = false
 	local bestText = nil
@@ -300,12 +329,8 @@ local function scanQuestBanner()
 		end
 	end
 
-	if bestText then
-		return true, bestText, curN, totN
-	end
-	if foundVisibleQuest then
-		return true, "NV đang chạy", 0, 0
-	end
+	if bestText then return true, bestText, curN, totN end
+	if foundVisibleQuest then return true, "NV đang chạy", 0, 0 end
 	return false, "Chưa nhận NV", 0, 0
 end
 
@@ -396,6 +421,31 @@ local function flyTo(char, hum, hrp, goalPos, dt)
 	end
 end
 
+local function getNpcGoalPos(stage)
+	local folder = workspace:FindFirstChild("NPCs")
+	if folder then
+		local m = folder:FindFirstChild(stage.npc)
+		if not m then
+			local low = string.lower(stage.npc)
+			for _, c in ipairs(folder:GetChildren()) do
+				if string.find(string.lower(c.Name), low, 1, true) then
+					m = c
+					break
+				end
+			end
+		end
+		if m then
+			local part = m:IsA("Model")
+				and (m:FindFirstChild("HumanoidRootPart") or m.PrimaryPart or m:FindFirstChildWhichIsA("BasePart"))
+				or (m:IsA("BasePart") and m)
+			if part and part:IsDescendantOf(workspace) then
+				return part.Position + Vector3.new(0, 3.5, 0)
+			end
+		end
+	end
+	return stage.npcPos + Vector3.new(0, 3.5, 0)
+end
+
 local function findNearestMob(hrp, mobName)
 	local folder = workspace:FindFirstChild("Enemies")
 	if not folder or not hrp then return nil end
@@ -416,18 +466,16 @@ local function findNearestMob(hrp, mobName)
 	return best
 end
 
-local function takeQuestOnce(stage)
+-- Nhận nhiệm vụ ngầm qua remote (không bấm mở khung hội thoại NPC lên màn hình)
+local function acceptQuestSilently(stage)
 	local remotes = ReplicatedStorage:FindFirstChild("Remotes")
 	local commF = (remotes and remotes:FindFirstChild("CommF_")) or ReplicatedStorage:FindFirstChild("CommF_")
 	if commF and commF:IsA("RemoteFunction") then
-		pcall(function() commF:InvokeServer("StartQuest", stage.quest, stage.questIdx) end)
+		pcall(function()
+			commF:InvokeServer("StartQuest", stage.quest, stage.questIdx)
+		end)
 	end
-	local npcFolder = workspace:FindFirstChild("NPCs")
-	local npcModel = npcFolder and npcFolder:FindFirstChild(stage.npc)
-	local reTalk = remotes and remotes:FindFirstChild("OnTalkToNPC")
-	if npcModel and reTalk then
-		pcall(function() reTalk:FireServer(npcModel) end)
-	end
+	hideNpcDialogIfOpened()
 end
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -496,7 +544,7 @@ local function buildLvlUI()
 	App.NotifyLbl.TextColor3 = Color3.fromRGB(56, 248, 255)
 	App.NotifyLbl.Font = Enum.Font.GothamBold
 	App.NotifyLbl.TextSize = 11
-	App.NotifyLbl.Text = "🔔 " .. CFG.Title .. " • " .. CFG.Brand .. " (Buso + Stat)"
+	App.NotifyLbl.Text = "🔔 " .. CFG.Title .. " • " .. CFG.Brand
 	App.NotifyLbl.Parent = sg
 	Instance.new("UICorner", App.NotifyLbl).CornerRadius = UDim.new(0, 10)
 	local nStroke = Instance.new("UIStroke", App.NotifyLbl)
@@ -629,7 +677,7 @@ local function buildLvlUI()
 			App.QuestStartLv = nil
 		end
 		syncToggleButtons()
-		notify(CFG.AutoQuest and "Bật Auto Quest" or "Tắt Auto Quest")
+		notify(CFG.AutoQuest and "Bật Auto Quest Ngầm" or "Tắt Auto Quest")
 	end)
 
 	App.MeleeBtn.MouseButton1Click:Connect(function()
@@ -722,6 +770,21 @@ RunService.Heartbeat:Connect(function(dt)
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
 	local hrp = char and char:FindFirstChild("HumanoidRootPart")
 
+	if CFG.AutoQuest then
+		hideNpcDialogIfOpened()
+	end
+
+	-- Nếu sang mốc nhiệm vụ mới theo level, mở khóa nhận nhiệm vụ mới của level đó ngay
+	if App.LastStageKey ~= nil and App.LastStageKey ~= stageKey then
+		App.QuestActive = false
+		App.QuestStartLv = nil
+		App.QuestStageKey = nil
+		if CFG.AutoFarm then
+			notify("Lv " .. lv .. " -> Chuyển sang " .. stage.mob .. " (" .. stage.island .. ")")
+		end
+	end
+	App.LastStageKey = stageKey
+
 	if CFG.AutoBuso and char and (now - App.LastBuso >= CFG.BusoInterval) then
 		App.LastBuso = now
 		activateBuso(char)
@@ -733,13 +796,8 @@ RunService.Heartbeat:Connect(function(dt)
 	end
 
 	if leveledDirect then
-		notify("Lên +" .. tostring(gainedLv) .. " Lv (Lv " .. lv .. ") -> " .. stage.island)
+		notify("Lên +" .. tostring(gainedLv) .. " Lv (Lv " .. lv .. ") -> " .. stage.mob)
 	end
-
-	if App.LastIsland ~= nil and App.LastIsland ~= stage.island and CFG.AutoFarm then
-		notify("Đủ level! Bay qua đảo " .. stage.island)
-	end
-	App.LastIsland = stage.island
 
 	if App.QuestActive then
 		local leveledUpSinceTake = (App.QuestStartLv ~= nil) and (lv > App.QuestStartLv)
@@ -786,39 +844,41 @@ RunService.Heartbeat:Connect(function(dt)
 		equipMelee(char, hum)
 	end
 
-	if CFG.AutoQuest and (not App.QuestActive) and (not hasGui) and (now - App.LastQuestCall >= CFG.QuestCooldown) then
-		local npcFolder = workspace:FindFirstChild("NPCs")
-		local npcModel = npcFolder and npcFolder:FindFirstChild(stage.npc)
-		local npcPart = npcModel and (npcModel:FindFirstChild("HumanoidRootPart") or npcModel.PrimaryPart or npcModel:FindFirstChildWhichIsA("BasePart"))
-		if npcPart and (npcPart.Position - hrp.Position).Magnitude > 14 then
-			if App.StateLbl then App.StateLbl.Text = "Trạng thái: Bay tới NPC nhận NV 1 lần" end
-			flyTo(char, hum, hrp, npcPart.Position + Vector3.new(0, 5, 0), dt)
-		else
+	-- Bước 1: Nếu bật AutoQuest và chưa nhận NV cho mốc hiện tại -> bay tới đứng gần NPC rồi nhận NV ngầm 1 lần
+	if CFG.AutoQuest and (not App.QuestActive) and (not hasGui) then
+		local npcGoal = getNpcGoalPos(stage)
+		if (npcGoal - hrp.Position).Magnitude > 11 then
+			if App.StateLbl then App.StateLbl.Text = "Trạng thái: Bay tới NPC nhận NV (" .. stage.mob .. ")" end
+			flyTo(char, hum, hrp, npcGoal, dt)
+			return
+		elseif (now - App.LastQuestCall) >= CFG.QuestCooldown then
 			App.LastQuestCall = now
 			App.QuestActive = true
 			App.QuestStartLv = lv
 			App.QuestStageKey = stageKey
 			App.LastProgressText = "NV: 0/?"
-			takeQuestOnce(stage)
-			if App.StateLbl then App.StateLbl.Text = "Trạng thái: Đã nhận NV " .. stage.mob .. " (Lv " .. lv .. ")" end
-			notify("Đã nhận NV " .. stage.mob .. " • Theo dõi tiến độ")
+			acceptQuestSilently(stage)
+			if App.StateLbl then App.StateLbl.Text = "Trạng thái: Đã nhận NV ngầm -> Đi farm " .. stage.mob end
+			notify("Đã nhận NV " .. stage.mob .. " (không mở dialog)")
 		end
 	end
 
+	-- Bước 2: Tìm quái đúng tên nhiệm vụ/level; nếu đứng xa chưa thấy quái thì bay thẳng sang đảo/bãi của stage đó
 	local mobPart = findNearestMob(hrp, stage.mob)
 	if mobPart then
 		if App.StateLbl then App.StateLbl.Text = "Trạng thái: Đang farm " .. stage.mob .. " (" .. displayProg .. ")" end
 		flyTo(char, hum, hrp, mobPart.Position + Vector3.new(0, CFG.Height, 0), dt)
 	else
-		local islandGoal = stage.islandPos + Vector3.new(0, 24, 0)
-		if (islandGoal - hrp.Position).Magnitude > 4 then
-			if App.StateLbl then App.StateLbl.Text = "Trạng thái: Bay qua đảo " .. stage.island end
-			flyTo(char, hum, hrp, islandGoal, dt)
+		local zoneGoal = stage.mobPos + Vector3.new(0, 22, 0)
+		if (zoneGoal - hrp.Position).Magnitude > 4 then
+			if App.StateLbl then App.StateLbl.Text = "Trạng thái: Bay qua đảo " .. stage.island .. " (Lv " .. lv .. ")" end
+			flyTo(char, hum, hrp, zoneGoal, dt)
 		else
-			if App.StateLbl then App.StateLbl.Text = "Trạng thái: Đợi quái spawn tại " .. stage.island end
+			if App.StateLbl then App.StateLbl.Text = "Trạng thái: Đang kích spawn " .. stage.mob .. " tại " .. stage.island end
 		end
 	end
 
+	-- Bước 3: Xả đòn đúng tốc độ cũ (0.13s), khoảng cách đánh 60
 	if now - App.LastAtk >= CFG.Delay then
 		local tool = equipMelee(char, hum) or char:FindFirstChildOfClass("Tool")
 		local folder = workspace:FindFirstChild("Enemies")
