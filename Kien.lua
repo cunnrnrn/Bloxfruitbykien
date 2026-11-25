@@ -10,11 +10,11 @@ local CFG = {
 	Range = 60,
 	TweenSpeed = 145,
 	HoverHeight = 7.5,
-	NpcAboveOffset = Vector3.new(0, 12, 0), -- Bay cao trên đầu NPC rồi đứng im
-	MaxPullMobs = 3, -- Tối đa 2 hoặc 3 con gần nhất (chỉnh 2 hoặc 3)
+	NpcAboveOffset = Vector3.new(0, 12, 0),
+	MaxPullMobs = 3, -- Tối đa 2 hoặc 3 con gần nhất
 	PullRadius = 110,
 	StandFarmOffset = Vector3.new(0, 7.5, 4),
-	QuestReacceptCooldown = 2.0,
+	QuestReacceptCooldown = 1.5,
 	Session = nil,
 }
 
@@ -31,8 +31,9 @@ local Core = _G.KienVip94Core or {
 	CurrentSea = 1,
 	CurrentLevel = 1,
 	TargetMobName = "Bandit",
-	QuestProgressText = "Chưa có NV",
-	QuestDone = false,
+	QuestGuiVisible = false,
+	QuestProgressText = "NV Ẩn -> Nhận tiếp",
+	QuestDone = true,
 	Status = "Idle",
 }
 _G.KienVip94Core = Core
@@ -199,42 +200,56 @@ local function getQuestForSeaAndLevel(sea, lv)
 end
 
 -- ==========================================
--- ĐỌC TIẾN TRÌNH NV CHÍNH XÁC (CHỐNG RESET VỀ 0)
--- Trả về: hasActiveQuest, progressText, isQuestComplete
+-- THEO DÕI GIAO DIỆN NHIỆM VỤ:
+-- Đang hiện -> giữ NV và farm; Biến mất -> nhận tiếp
 -- ==========================================
-local function readQuestProgressStrict()
+local function isQuestGuiVisible()
 	local pGui = player:FindFirstChild("PlayerGui")
 	local mainGui = pGui and pGui:FindFirstChild("Main")
 	local qFrame = mainGui and mainGui:FindFirstChild("Quest")
-
-	if not qFrame or not qFrame.Visible then
-		return false, "Chưa có NV", false
+	if not qFrame or not qFrame.Parent then
+		return false
 	end
 
-	local bestCur, bestReq = nil, nil
-	for _, obj in ipairs(qFrame:GetDescendants()) do
-		if obj:IsA("TextLabel") and obj.Visible then
-			local cur, req = string.match(obj.Text, "(%d+)%s*/%s*(%d+)")
-			if cur and req then
-				cur = tonumber(cur)
-				req = tonumber(req)
-				if req and req > 0 then
-					bestCur = cur
-					bestReq = req
-					break
+	if qFrame:IsA("GuiObject") and qFrame.Visible then
+		return true
+	end
+
+	for _, child in ipairs(qFrame:GetChildren()) do
+		if child:IsA("GuiObject") and child.Visible then
+			for _, desc in ipairs(child:GetDescendants()) do
+				if desc:IsA("TextLabel") and desc.Visible and desc.Text ~= "" then
+					return true
 				end
 			end
 		end
 	end
 
-	if bestCur and bestReq then
-		local isComplete = (bestCur >= bestReq)
-		return true, tostring(bestCur) .. "/" .. tostring(bestReq), isComplete
+	return false
+end
+
+local function inspectQuestUiState()
+	local visible = isQuestGuiVisible()
+	if visible then
+		local prog = "NV đang hiện"
+		local pGui = player:FindFirstChild("PlayerGui")
+		local mainGui = pGui and pGui:FindFirstChild("Main")
+		local qFrame = mainGui and mainGui:FindFirstChild("Quest")
+		if qFrame then
+			for _, obj in ipairs(qFrame:GetDescendants()) do
+				if obj:IsA("TextLabel") and obj.Visible then
+					local cur, req = string.match(obj.Text, "(%d+)%s*/%s*(%d+)")
+					if cur and req then
+						prog = cur .. "/" .. req
+						break
+					end
+				end
+			end
+		end
+		return true, prog, false
 	end
 
-	-- Nếu khung Quest đang bật mà chưa đọc kịp số x/y:
-	-- TUYỆT ĐỐI KHÔNG coi là xong NV để tránh chạy về NPC nhận lại reset về 0
-	return true, "Đang làm", false
+	return false, "NV biến mất -> Nhận tiếp", true
 end
 
 local function getCommF()
@@ -314,7 +329,6 @@ local function flyTo(hrp, hum, targetPos, lookTargetPos)
 	setNoClip(false)
 end
 
--- Bay cao trên đầu NPC rồi đứng im nhận NV
 local function hoverAboveNpcAndAccept(hrp, hum, q)
 	if not Core.AutoQuest or not q then return end
 	if os.clock() - Core.LastQuestInvoke < CFG.QuestReacceptCooldown then return end
@@ -325,7 +339,6 @@ local function hoverAboveNpcAndAccept(hrp, hum, q)
 		flyTo(hrp, hum, abovePos, q.questPos)
 	end
 
-	-- Đứng im tuyệt đối trên đầu NPC để nhận NV
 	Core.Status = "Đứng im nhận NV"
 	for _ = 1, 4 do
 		hrp.CFrame = CFrame.lookAt(abovePos, q.questPos)
@@ -343,7 +356,6 @@ local function hoverAboveNpcAndAccept(hrp, hum, q)
 	end
 end
 
--- Lấy tối đa 2 hoặc 3 con quái sống gần nhất
 local function getClosestMobs(mobName, anchorPos, maxCount)
 	local folder = workspace:FindFirstChild("Enemies")
 	if not folder then return {} end
@@ -379,7 +391,6 @@ local function getClosestMobs(mobName, anchorPos, maxCount)
 	return picked
 end
 
--- Gom tối đa 2-3 con quái gần nhất: khi thấy chúng di chuyển tới điểm gom thì neo cố định để farm đứng im
 local function pullAndHoldCluster(group, clusterCenter)
 	if not Core.AutoBringMob or #group == 0 then return end
 
@@ -391,7 +402,6 @@ local function pullAndHoldCluster(group, clusterCenter)
 				local angle = (idx - 1) * (math.pi * 2 / math.max(1, #group))
 				local slotPos = clusterCenter + Vector3.new(math.cos(angle) * 2.5, 0, math.sin(angle) * 2.5)
 				local toSlot = slotPos - root.Position
-				-- Chỉ kéo nhẹ khi quái còn xa điểm gom để quái tự di chuyển vào cụm
 				if toSlot.Magnitude > 3.5 then
 					root.CFrame = root.CFrame:Lerp(CFrame.new(slotPos), 0.45)
 					root.AssemblyLinearVelocity = Vector3.zero
@@ -471,7 +481,6 @@ player.Idled:Connect(function()
 	end
 end)
 
--- Vòng lặp quét Sea, Level & Tiến trình NV
 task.spawn(function()
 	while true do
 		Core.CurrentSea = detectCurrentSea()
@@ -479,14 +488,14 @@ task.spawn(function()
 		local q = getQuestForSeaAndLevel(Core.CurrentSea, Core.CurrentLevel)
 		Core.TargetMobName = q.mobName
 
-		local _, progText, isDone = readQuestProgressStrict()
+		local vis, progText, canTakeNext = inspectQuestUiState()
+		Core.QuestGuiVisible = vis
 		Core.QuestProgressText = progText
-		Core.QuestDone = isDone
-		task.wait(0.25)
+		Core.QuestDone = canTakeNext
+		task.wait(0.2)
 	end
 end)
 
--- Vòng lặp chính: Nhận NV đúng lúc -> Bay tới đảo -> Gom tối đa 2-3 quái -> Đứng im farm không nhấp nhô
 local lockedStandPos = nil
 local lockedMobRef = nil
 
@@ -507,12 +516,12 @@ task.spawn(function()
 			local q = getQuestForSeaAndLevel(sea, lv)
 			Core.TargetMobName = q.mobName
 
-			local hasQ, progText, isDone = readQuestProgressStrict()
+			local vis, progText, canTakeNext = inspectQuestUiState()
+			Core.QuestGuiVisible = vis
 			Core.QuestProgressText = progText
-			Core.QuestDone = isDone
+			Core.QuestDone = canTakeNext
 
-			-- Chỉ bay trên đầu NPC nhận NV khi CHƯA có NV hoặc ĐÃ XONG ĐỦ SỐ CON (isDone == true)
-			if Core.AutoQuest and (not hasQ or isDone) then
+			if Core.AutoQuest and canTakeNext then
 				lockedStandPos = nil
 				lockedMobRef = nil
 				hoverAboveNpcAndAccept(hrp, hum, q)
@@ -534,7 +543,6 @@ task.spawn(function()
 				local leadMob = group[1].mob
 				local leadRoot = group[1].root
 
-				-- Neo vị trí đứng im khi bắt đầu cụm quái mới để không bị nhấp nhô lên/xuống
 				if not lockedStandPos or not lockedMobRef or not lockedMobRef.Parent or (lockedMobRef.Humanoid and lockedMobRef.Humanoid.Health <= 0) then
 					lockedMobRef = leadMob
 					lockedStandPos = leadRoot.Position + CFG.StandFarmOffset
@@ -545,12 +553,10 @@ task.spawn(function()
 					flyTo(hrp, hum, lockedStandPos, leadRoot.Position)
 				end
 
-				-- Đứng im tuyệt đối tại vị trí farm, không bay lên hạ xuống
 				hum.PlatformStand = true
 				hrp.CFrame = CFrame.lookAt(lockedStandPos, leadRoot.Position)
 				freezeVelocity(hrp)
 
-				-- Gom tối đa 2-3 con quái gần nhất về cụm bên dưới
 				local clusterGroundPos = Vector3.new(lockedStandPos.X, leadRoot.Position.Y, lockedStandPos.Z)
 				pullAndHoldCluster(group, clusterGroundPos)
 
@@ -876,9 +882,9 @@ local pPull = makeTopTab("Gom Quái")
 local pEsp = makeTopTab("ESP")
 local pMisc = makeTopTab("Khác")
 
-makeToggle(pFarm, "Auto Farm Level (Bay 145 + Đủ NV)", Core.AutoFarm, function(v) Core.AutoFarm = v end)
-makeToggle(pFarm, "Nhận NV Khi Đủ Số Lượng (Trên Đầu NPC)", Core.AutoQuest, function(v) Core.AutoQuest = v end)
-local infoLbl = makeInfoRow(pFarm, "Sea 1 | Lv.1 | Bandit | NV: Chưa có NV")
+makeToggle(pFarm, "Auto Farm Level (Bay 145 + Đợi NV Mất)", Core.AutoFarm, function(v) Core.AutoFarm = v end)
+makeToggle(pFarm, "Nhận NV Khi Giao Diện Biến Mất", Core.AutoQuest, function(v) Core.AutoQuest = v end)
+local infoLbl = makeInfoRow(pFarm, "Sea 1 | Lv.1 | Bandit | NV: NV biến mất -> Nhận tiếp")
 local statusLbl = makeInfoRow(pFarm, "Trạng thái: Idle")
 
 makeToggle(pPull, "Gom Tối Đa 2-3 Quái + Farm Đứng Im", Core.AutoBringMob, function(v) Core.AutoBringMob = v end)
